@@ -1,0 +1,110 @@
+<%- include('partials/header') %>
+
+<div class="write-container">
+    <form id="edit-form" class="write-form" data-id="<%= post._id %>">
+        <div class="write-actions-top">
+            <a href="/post/<%= post._id %>" class="btn-secondary">Cancel</a>
+            <button type="button" id="toggle-preview" class="btn-secondary">Preview</button>
+            <button type="submit" class="btn-publish">Update</button>
+        </div>
+        
+        <input type="text" name="title" class="input-title" placeholder="Title" required value="<%= post.title %>">
+        <input type="text" name="excerpt" class="input-excerpt" placeholder="Short excerpt (optional)" maxlength="160" value="<%= post.excerpt %>">
+        
+        <div class="editor-wrapper">
+            <div class="editor-pane">
+                <textarea name="content" id="markdown-input" class="input-content" placeholder="Write in Markdown..." required><%= post.content %></textarea>
+            </div>
+            <div class="preview-pane hidden" id="markdown-preview">
+                <!-- Markdown content will be rendered here -->
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Marked Library for Markdown Parsing -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<style>
+.write-container { max-width: 900px; margin: 40px auto; }
+.write-form { display: flex; flex-direction: column; gap: 15px; }
+.write-actions-top { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 20px; }
+.editor-wrapper { display: flex; gap: 20px; min-height: 500px; }
+.editor-pane, .preview-pane { flex: 1; width: 100%; }
+.hidden { display: none; }
+.input-title { font-size: 2.5rem; font-weight: 700; border: none; outline: none; width: 100%; background: transparent; color: var(--text-main); }
+.input-excerpt { font-size: 1.2rem; border: none; outline: none; width: 100%; background: transparent; color: var(--text-muted); margin-bottom: 10px; }
+.input-content { 
+    font-size: 1.1rem; border: none; outline: none; font-family: 'Courier New', monospace; 
+    width: 100%; height: 100%; min-height: 450px; resize: none; background: transparent; 
+    color: var(--text-main); line-height: 1.6; padding: 10px;
+    border-left: 2px solid var(--border-color);
+}
+.preview-pane { 
+    font-family: var(--font-serif); font-size: 1.2rem; line-height: 1.6; 
+    padding: 10px; border-left: 2px solid var(--accent-color);
+    overflow-y: auto;
+}
+.btn-publish { background: var(--accent-color); color: white; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; }
+.btn-secondary { background: var(--secondary-bg); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 20px; border-radius: 20px; cursor: pointer; text-decoration: none; font-size: 0.9rem; }
+</style>
+
+<script>
+const input = document.getElementById('markdown-input');
+const preview = document.getElementById('markdown-preview');
+const toggleBtn = document.getElementById('toggle-preview');
+
+// Real-time preview update
+input.addEventListener('input', () => {
+    preview.innerHTML = marked.parse(input.value);
+});
+
+// Toggle Preview Mode
+toggleBtn.addEventListener('click', () => {
+    preview.classList.toggle('hidden');
+    if (!preview.classList.contains('hidden')) {
+        preview.innerHTML = marked.parse(input.value);
+        toggleBtn.innerText = 'Edit';
+    } else {
+        toggleBtn.innerText = 'Preview';
+    }
+});
+
+document.getElementById('edit-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = e.target.dataset.id;
+    const publishBtn = e.target.querySelector('.btn-publish');
+    const originalText = publishBtn.innerText;
+
+    publishBtn.disabled = true;
+    publishBtn.innerHTML = 'Updating...';
+
+    const formData = {
+        title: e.target.title.value,
+        excerpt: e.target.excerpt.value,
+        content: e.target.content.value
+    };
+
+    try {
+        const res = await fetch('/api/posts/' + id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+        const data = await res.json();
+        if (res.ok) window.location.href = '/post/' + id;
+        else {
+            alert(data.message || 'Error updating');
+            publishBtn.disabled = false;
+            publishBtn.innerText = originalText;
+        }
+    } catch (err) {
+        console.error(err);
+        alert('An error occurred.');
+        publishBtn.disabled = false;
+        publishBtn.innerText = originalText;
+    }
+});
+</script>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,289 @@
+<%- include('partials/header') %>
+
+<article class="single-post" data-id="<%= post._id %>">
+    <header class="post-header">
+        <div class="post-meta">
+            <span class="author-name"><%= post.author %></span> · 
+            <span class="post-date"><%= post.createdAt.toDateString() %></span> · 
+            <span class="read-time"><%= post.readTime || 5 %> min read</span>
+            <% if (user && post.authorId && (user._id.toString() === post.authorId.toString() || user.role === 'admin')) { %>
+                · <a href="/edit/<%= post._id %>" class="edit-link">Edit</a> · 
+                <button class="delete-link-btn" onclick="deletePost('<%= post._id %>')">Delete</button>
+            <% } %>
+        </div>
+        <h1 class="post-full-title"><%= post.title %></h1>
+        <% if (post.excerpt) { %>
+            <p class="post-subtitle"><%= post.excerpt %></p>
+        <% } %>
+    </header>
+
+    <div class="post-hero">
+        <div class="placeholder-hero"></div>
+    </div>
+
+    <div class="post-content" id="post-content">
+        <%= post.content %>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        const contentDiv = document.getElementById('post-content');
+        contentDiv.innerHTML = marked.parse(contentDiv.innerText);
+    </script>
+
+    <footer class="post-footer">
+        <div class="post-actions">
+            <div class="reactions-bar">
+                <% const isLiked = user && post.likes && post.likes.includes(user._id); %>
+                <button class="action-btn" id="like-btn" style="color: <%= isLiked ? 'var(--accent-color)' : 'inherit' %>">
+                    <i class="<%= isLiked ? 'fas' : 'far' %> fa-heart"></i> <span id="like-count"><%= post.likes?.length || 0 %></span>
+                </button>
+                <button class="action-btn" onclick="document.getElementById('comment-textarea').focus()">
+                    <i class="far fa-comment"></i> <%= post.comments?.length || 0 %>
+                </button>
+            </div>
+            <div class="share-btns">
+                <button class="btn-icon" onclick="sharePost('twitter')"><i class="fab fa-twitter"></i></button>
+                <button class="btn-icon" onclick="sharePost('facebook')"><i class="fab fa-facebook"></i></button>
+                <button class="btn-icon" onclick="copyLink()"><i class="fas fa-link"></i></button>
+            </div>
+        </div>
+
+        <section class="comments-section">
+            <h3>Comments (<span id="comment-count"><%= post.comments?.length || 0 %></span>)</h3>
+            <div class="comment-input">
+                <div class="profile-circle small"><%= (user && user.name) ? user.name.charAt(0).toUpperCase() : '?' %></div>
+                <div class="textarea-wrapper">
+                    <textarea id="comment-textarea" placeholder="Add to the discussion"></textarea>
+                    <button id="send-comment-btn" class="btn-primary mini">Send</button>
+                </div>
+            </div>
+            
+            <div class="comments-list" id="comments-list">
+                <% if (post.comments && post.comments.length > 0) { %>
+                    <% [...post.comments].reverse().forEach(comment => { %>
+                        <div class="comment-container" id="comment-<%= comment._id %>">
+                            <div class="comment">
+                                <div class="comment-header">
+                                    <span class="comment-author"><%= comment.author %></span>
+                                    <span class="comment-date"><%= new Date(comment.date).toDateString() %></span>
+                                    <div class="comment-actions">
+                                        <% if (user && comment.authorId && (user._id.toString() === comment.authorId.toString() || user.role === 'admin')) { %>
+                                            <button onclick="editComment('<%= comment._id %>')" class="mini-action-btn">Edit</button>
+                                        <% } %>
+                                        <% if (user && (user._id.toString() === comment.authorId?.toString() || (post.authorId && user._id.toString() === post.authorId.toString()) || user.role === 'admin')) { %>
+                                            <button onclick="deleteComment('<%= comment._id %>')" class="mini-action-btn delete">Delete</button>
+                                        <% } %>
+                                    </div>
+                                </div>
+                                <p class="comment-text" id="comment-text-<%= comment._id %>"><%= comment.text %></p>
+                                <div id="edit-comment-form-<%= comment._id %>" class="hidden">
+                                    <textarea class="edit-comment-textarea"><%= comment.text %></textarea>
+                                    <div class="edit-actions">
+                                        <button onclick="saveComment('<%= comment._id %>')" class="btn-primary mini">Save</button>
+                                        <button onclick="cancelEditComment('<%= comment._id %>')" class="btn-secondary mini">Cancel</button>
+                                    </div>
+                                </div>
+                                <button class="reply-trigger" onclick="toggleReplyForm('<%= comment._id %>')">Reply</button>
+                            </div>
+
+                            <div class="replies-list" id="replies-<%= comment._id %>">
+                                <% if (comment.replies && comment.replies.length > 0) { %>
+                                    <% comment.replies.forEach(reply => { %>
+                                        <div class="reply">
+                                            <div class="comment-header">
+                                                <span class="comment-author"><%= reply.author %></span>
+                                                <span class="comment-date"><%= new Date(reply.date).toDateString() %></span>
+                                            </div>
+                                            <p class="comment-text"><%= reply.text %></p>
+                                        </div>
+                                    <% }) %>
+                                <% } %>
+                            </div>
+
+                            <div class="reply-form hidden" id="reply-form-<%= comment._id %>">
+                                <textarea placeholder="Write a reply..."></textarea>
+                                <button class="btn-primary mini" onclick="submitReply('<%= comment._id %>')">Reply</button>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } %>
+            </div>
+        </section>
+    </footer>
+</article>
+
+<style>
+.comment-container { margin-bottom: 25px; }
+.reply-trigger { background: none; border: none; color: var(--text-muted); font-size: 0.85rem; cursor: pointer; margin-top: 5px; padding: 0; }
+.reply-trigger:hover { text-decoration: underline; color: var(--accent-color); }
+.replies-list { margin-left: 40px; border-left: 2px solid var(--border-color); padding-left: 15px; margin-top: 15px; }
+.reply { margin-bottom: 15px; }
+.reply-form { margin-left: 40px; margin-top: 10px; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+.reply-form textarea { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--secondary-bg); color: var(--text-main); font-size: 0.9rem; }
+.hidden { display: none; }
+
+.edit-link, .delete-link-btn { font-size: 0.85rem; color: var(--text-muted); text-decoration: none; cursor: pointer; background: none; border: none; padding: 0; }
+.edit-link:hover, .delete-link-btn:hover { color: var(--accent-color); }
+
+.comment-header { display: flex; align-items: center; gap: 10px; }
+.comment-actions { margin-left: auto; display: flex; gap: 8px; }
+.mini-action-btn { background: none; border: none; color: var(--text-muted); font-size: 0.75rem; cursor: pointer; padding: 2px 5px; }
+.mini-action-btn:hover { color: var(--accent-color); }
+.mini-action-btn.delete:hover { color: #ff4d4d; }
+
+.edit-comment-textarea { width: 100%; min-height: 60px; padding: 10px; margin: 10px 0; border: 1px solid var(--border-color); border-radius: 4px; background: var(--secondary-bg); color: var(--text-main); }
+.edit-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.btn-primary.mini, .btn-secondary.mini { padding: 4px 12px; font-size: 0.8rem; border-radius: 4px; }
+</style>
+
+<script>
+const postId = document.querySelector('.single-post').dataset.id;
+
+// Delete Post
+async function deletePost(id) {
+    if (!confirm('Are you sure you want to delete this post?')) return;
+    try {
+        const res = await fetch(`/api/posts/${id}`, { method: 'DELETE' });
+        if (res.ok) window.location.href = '/';
+        else alert('Error deleting post');
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+// Comment Edit/Delete
+function editComment(commentId) {
+    document.getElementById(`comment-text-${commentId}`).classList.add('hidden');
+    document.getElementById(`edit-comment-form-${commentId}`).classList.remove('hidden');
+}
+
+function cancelEditComment(commentId) {
+    document.getElementById(`comment-text-${commentId}`).classList.remove('hidden');
+    document.getElementById(`edit-comment-form-${commentId}`).classList.add('hidden');
+}
+
+async function saveComment(commentId) {
+    const text = document.querySelector(`#edit-comment-form-${commentId} textarea`).value.trim();
+    if (!text) return;
+    try {
+        const res = await fetch(`/api/posts/${postId}/comment/${commentId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text })
+        });
+        if (res.ok) location.reload();
+        else alert('Error updating comment');
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+async function deleteComment(commentId) {
+    if (!confirm('Delete this comment?')) return;
+    try {
+        const res = await fetch(`/api/posts/${postId}/comment/${commentId}`, { method: 'DELETE' });
+        if (res.ok) location.reload();
+        else alert('Error deleting comment');
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+// Like functionality
+document.getElementById('like-btn').addEventListener('click', async () => {
+    try {
+        const res = await fetch(`/api/posts/${postId}/like`, { method: 'POST' });
+        const data = await res.json();
+        if (res.ok) {
+            document.getElementById('like-count').innerText = data.likes;
+            const icon = document.getElementById('like-btn').querySelector('i');
+            if (data.isLiked) {
+                icon.classList.replace('far', 'fas');
+                document.getElementById('like-btn').style.color = 'var(--accent-color)';
+            } else {
+                icon.classList.replace('fas', 'far');
+                document.getElementById('like-btn').style.color = 'inherit';
+            }
+        } else {
+            alert(data.message || 'Login to like posts');
+        }
+    } catch (err) {
+        console.error(err);
+    }
+});
+
+// Comment functionality
+document.getElementById('send-comment-btn').addEventListener('click', async () => {
+    const textarea = document.getElementById('comment-textarea');
+    const text = textarea.value.trim();
+    if (!text) return;
+
+    try {
+        const res = await fetch(`/api/posts/${postId}/comment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text })
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+            textarea.value = '';
+            location.reload(); // Simpler than building full nested DOM
+        } else {
+            alert(data.message || 'Login to post comments');
+        }
+    } catch (err) {
+        console.error(err);
+    }
+});
+
+function toggleReplyForm(commentId) {
+    const form = document.getElementById(`reply-form-${commentId}`);
+    form.classList.toggle('hidden');
+    if (!form.classList.contains('hidden')) {
+        form.querySelector('textarea').focus();
+    }
+}
+
+async function submitReply(commentId) {
+    const form = document.getElementById(`reply-form-${commentId}`);
+    const text = form.querySelector('textarea').value.trim();
+    if (!text) return;
+
+    try {
+        const res = await fetch(`/api/posts/${postId}/reply`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text, commentId })
+        });
+        
+        if (res.ok) {
+            location.reload();
+        } else {
+            const data = await res.json();
+            alert(data.message || 'Error posting reply');
+        }
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+// Share functionality
+function sharePost(platform) {
+    const url = window.location.href;
+    const title = document.title;
+    let shareUrl = '';
+    if (platform === 'twitter') shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
+    else if (platform === 'facebook') shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+    window.open(shareUrl, '_blank', 'width=600,height=400');
+}
+
+function copyLink() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+        alert('Link copied to clipboard!');
+    });
+}
+</script>
+
+<%- include('partials/footer') %>

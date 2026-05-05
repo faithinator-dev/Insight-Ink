@@ -1,0 +1,100 @@
+<%- include('partials/header') %>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <h2>Join Insight-Ink.</h2>
+        <form id="register-form">
+            <div class="form-group" id="name-group">
+                <label>Full Name</label>
+                <input type="text" name="name" required placeholder="Enter your full name">
+                <span class="error-message">Name is required</span>
+            </div>
+            <div class="form-group" id="email-group">
+                <label>Email</label>
+                <input type="email" name="email" required placeholder="Enter your email">
+                <span class="error-message">Valid email is required</span>
+            </div>
+            <div class="form-group" id="password-group">
+                <label>Password</label>
+                <div class="password-wrapper">
+                    <input type="password" name="password" id="reg-password" required minlength="6" placeholder="Min. 6 characters">
+                    <i class="far fa-eye password-toggle" id="toggle-password"></i>
+                </div>
+                <span class="error-message">Password must be at least 6 characters</span>
+            </div>
+            <div class="form-group">
+                <label>Role</label>
+                <select name="role">
+                    <option value="user">User (Reader)</option>
+                    <option value="admin">Admin (Author)</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-auth" id="reg-btn">
+                <span id="btn-text">Sign Up</span>
+            </button>
+        </form>
+        <p class="auth-switch">Already have an account? <a href="/login">Sign in</a></p>
+    </div>
+</div>
+
+<script>
+// Toggle Password Visibility
+const togglePassword = document.getElementById('toggle-password');
+const passwordInput = document.getElementById('reg-password');
+
+togglePassword.addEventListener('click', () => {
+    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    passwordInput.setAttribute('type', type);
+    togglePassword.classList.toggle('fa-eye');
+    togglePassword.classList.toggle('fa-eye-slash');
+});
+
+document.getElementById('register-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const regBtn = document.getElementById('reg-btn');
+    const btnText = document.getElementById('btn-text');
+    const groups = ['name-group', 'email-group', 'password-group'];
+    
+    // Reset errors
+    groups.forEach(id => document.getElementById(id).classList.remove('error'));
+
+    const name = e.target.name.value;
+    const email = e.target.email.value;
+    const password = e.target.password.value;
+    const role = e.target.role.value;
+
+    // Loading state
+    regBtn.disabled = true;
+    btnText.innerHTML = '<span class="loader"></span> Creating account...';
+
+    try {
+        const res = await fetch('/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password, role })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            window.location.href = '/';
+        } else {
+            // Simple validation feedback based on message
+            if (data.message.toLowerCase().includes('name')) document.getElementById('name-group').classList.add('error');
+            if (data.message.toLowerCase().includes('email')) document.getElementById('email-group').classList.add('error');
+            if (data.message.toLowerCase().includes('password')) document.getElementById('password-group').classList.add('error');
+            
+            alert(data.message || 'Registration failed');
+        }
+    } catch (err) {
+        console.error('Fetch error:', err);
+        alert('An error occurred. Please try again.');
+    } finally {
+        regBtn.disabled = false;
+        btnText.innerText = 'Sign Up';
+    }
+});
+</script>
+
+<%- include('partials/footer') %>
