@@ -1,0 +1,98 @@
+{
+  "baseUrl": "http://127.0.0.1:5000",
+  "total": 18,
+  "passed": 18,
+  "failed": 0,
+  "results": [
+    {
+      "name": "GET /login returns 200",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "name": "GET / returns 200",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "name": "POST /api/register 201",
+      "ok": true,
+      "status": 201
+    },
+    {
+      "name": "POST /api/login 200",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "name": "GET /profile protected",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "name": "GET /write protected",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "name": "POST /api/posts 201",
+      "ok": true,
+      "status": 201
+    },
+    {
+      "name": "GET /api/posts 200",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "name": "GET /api/posts/:id 200",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "name": "POST /api/posts/:id/like 200",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "name": "POST /api/posts/:id/comment 200",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "name": "PUT /api/posts/:id/comment/:commentId 200",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "name": "POST /api/posts/:id/reply 200",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "name": "GET /post/:id render",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "name": "DELETE /api/posts/:id 200",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "name": "GET /api/notifications 200",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "name": "GET /inbox 200",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "name": "GET /logout allowed",
+      "ok": true,
+      "status": 302
+    }
+  ]
+}
