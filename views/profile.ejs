@@ -1,0 +1,234 @@
+<%- include('partials/header') %>
+
+<div class="profile-page">
+    <div class="profile-hero">
+        <div class="profile-avatar-lg"><%= profileUser.name.charAt(0).toUpperCase() %></div>
+        <div>
+            <h1>Your Profile</h1>
+            <p>Edit your account details or log out from here.</p>
+            <p class="profile-username">@<%= profileUser.username %></p>
+        </div>
+    </div>
+
+    <div class="profile-grid">
+        <section class="profile-card">
+            <h2>Account details</h2>
+            <form id="profile-form" class="profile-form">
+                <label>
+                    Full name
+                    <input type="text" name="name" value="<%= profileUser.name %>" required>
+                </label>
+
+                <label>
+                    Email
+                    <input type="email" name="email" value="<%= profileUser.email %>" required>
+                </label>
+
+                <label>
+                    Current password
+                    <input type="password" name="currentPassword" placeholder="Required only to change password">
+                </label>
+
+                <label>
+                    New password
+                    <input type="password" name="newPassword" placeholder="Leave blank to keep your current password">
+                </label>
+
+                <label>
+                    Confirm new password
+                    <input type="password" name="confirmPassword" placeholder="Repeat the new password">
+                </label>
+
+                <button type="submit" class="btn-primary profile-save-btn">Save changes</button>
+            </form>
+        </section>
+
+        <aside class="profile-card profile-summary">
+            <h2>Account info</h2>
+            <div class="summary-row">
+                <span>Role</span>
+                <strong><%= profileUser.role %></strong>
+            </div>
+            <div class="summary-row">
+                <span>Member since</span>
+                <strong><%= profileUser.createdAt.toDateString() %></strong>
+            </div>
+            <div class="profile-actions">
+                <a href="/logout" class="btn-secondary profile-logout-btn">Logout</a>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<style>
+.profile-page {
+    max-width: 980px;
+    margin: 40px auto 60px;
+}
+
+.profile-hero {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+.profile-hero h1 {
+    font-family: var(--font-serif);
+    font-size: 2.4rem;
+    margin-bottom: 6px;
+}
+
+.profile-hero p {
+    color: var(--text-muted);
+}
+
+.profile-username {
+    margin-top: 6px;
+    font-size: 0.95rem;
+    color: var(--accent-color);
+}
+
+.profile-avatar-lg {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4a90e2, #7cc4ff);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.9rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.profile-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+    gap: 24px;
+}
+
+.profile-card {
+    background: var(--primary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+.profile-card h2 {
+    font-family: var(--font-serif);
+    margin-bottom: 18px;
+}
+
+.profile-form {
+    display: grid;
+    gap: 16px;
+}
+
+.profile-form label {
+    display: grid;
+    gap: 8px;
+    font-size: 0.92rem;
+    color: var(--text-muted);
+}
+
+.profile-form input {
+    width: 100%;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--secondary-bg);
+    color: var(--text-main);
+    padding: 12px 14px;
+    font-size: 1rem;
+}
+
+.profile-form input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.profile-save-btn,
+.profile-logout-btn {
+    width: fit-content;
+    margin-top: 6px;
+}
+
+.profile-summary {
+    align-self: start;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-muted);
+}
+
+.summary-row strong {
+    color: var(--text-main);
+    text-align: right;
+}
+
+.profile-actions {
+    margin-top: 20px;
+}
+
+@media (max-width: 840px) {
+    .profile-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-hero {
+        align-items: flex-start;
+    }
+}
+</style>
+
+<script>
+document.getElementById('profile-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const form = event.currentTarget;
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalText = submitButton.innerText;
+
+    submitButton.disabled = true;
+    submitButton.innerText = 'Saving...';
+
+    const payload = {
+        name: form.name.value.trim(),
+        email: form.email.value.trim(),
+        currentPassword: form.currentPassword.value,
+        newPassword: form.newPassword.value,
+        confirmPassword: form.confirmPassword.value
+    };
+
+    try {
+        const response = await fetch('/api/profile', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            alert(data.message || 'Could not update profile.');
+        }
+    } catch (error) {
+        console.error(error);
+        alert('An error occurred while saving your profile.');
+    } finally {
+        submitButton.disabled = false;
+        submitButton.innerText = originalText;
+    }
+});
+</script>
+
+<%- include('partials/footer') %>

@@ -22,9 +22,17 @@
                 <% if (user) { %>
                     <a href="/write" class="write-link"><i class="far fa-edit"></i> Write</a>
                     <button class="btn-icon"><i class="far fa-bell"></i></button>
-                    <div class="profile-group">
-                        <div class="profile-circle"><%= (user && user.name) ? user.name.charAt(0).toUpperCase() : 'U' %></div>
-                        <a href="/logout" class="logout-link">Logout</a>
+                    <div class="profile-group" id="profile-group">
+                        <button type="button" class="profile-trigger" id="profile-trigger" aria-haspopup="true" aria-expanded="false">
+                            <div class="profile-circle"><%= (user && user.name) ? user.name.charAt(0).toUpperCase() : 'U' %></div>
+                            <span class="profile-trigger-label"><%= user.name %></span>
+                            <i class="fas fa-chevron-down profile-chevron"></i>
+                        </button>
+                        <div class="profile-dropdown hidden" id="profile-dropdown">
+                            <a href="/profile" class="profile-dropdown-link">View profile</a>
+                            <a href="/profile" class="profile-dropdown-link">Edit profile</a>
+                            <a href="/logout" class="profile-dropdown-link danger">Logout</a>
+                        </div>
                     </div>
                 <% } else { %>
                     <a href="/login" class="nav-link">Sign in</a>
@@ -34,3 +42,29 @@
         </div>
     </nav>
     <main class="container">
+
+<% if (user) { %>
+<script>
+const profileTrigger = document.getElementById('profile-trigger');
+const profileDropdown = document.getElementById('profile-dropdown');
+
+if (profileTrigger && profileDropdown) {
+    const closeProfileDropdown = () => {
+        profileDropdown.classList.add('hidden');
+        profileTrigger.setAttribute('aria-expanded', 'false');
+    };
+
+    profileTrigger.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const isHidden = profileDropdown.classList.toggle('hidden');
+        profileTrigger.setAttribute('aria-expanded', String(!isHidden));
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!profileDropdown.contains(event.target) && !profileTrigger.contains(event.target)) {
+            closeProfileDropdown();
+        }
+    });
+}
+</script>
+<% } %>

@@ -142,15 +142,68 @@ body {
 }
 
 .profile-group {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 15px;
 }
 
-.logout-link {
-    font-size: 0.8rem;
+.profile-trigger {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 0;
+}
+
+.profile-trigger-label {
+    font-size: 0.85rem;
     color: var(--text-muted);
+}
+
+.profile-chevron {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.profile-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    min-width: 160px;
+    background: var(--primary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+    padding: 8px;
+    z-index: 20;
+}
+
+.profile-dropdown.hidden {
+    display: none;
+}
+
+.profile-dropdown-link {
+    display: block;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: var(--text-main);
     text-decoration: none;
+}
+
+.profile-dropdown-link:hover {
+    background: var(--secondary-bg);
+}
+
+.profile-dropdown-link.danger {
+    color: #c2410c;
+}
+
+.profile-dropdown-link.danger:hover {
+    background: rgba(194, 65, 12, 0.08);
 }
 
 /* Auth Pages */

@@ -5,13 +5,13 @@ const jwt = require('jsonwebtoken');
 // @route   POST /api/auth/register
 exports.register = async (req, res) => {
     try {
-        const { name, email, password, role } = req.body;
+        const { name, email, password } = req.body;
 
         const user = await User.create({
             name,
             email,
             password,
-            role
+            role: 'user'
         });
 
         sendTokenResponse(user, 201, res);
@@ -56,10 +56,11 @@ exports.login = async (req, res) => {
 // @desc    Log user out / clear cookie
 // @route   GET /api/auth/logout
 exports.logout = (req, res) => {
-    res.cookie('token', 'none', {
-        expires: new Date(Date.now() + 10 * 1000),
-        httpOnly: true
-    });
+    res.clearCookie('token');
+
+    if (req.accepts('html')) {
+        return res.redirect('/login');
+    }
 
     res.status(200).json({ success: true, data: {} });
 };
@@ -90,6 +91,7 @@ const sendTokenResponse = (user, statusCode, res) => {
             token,
             user: {
                 id: user._id,
+                username: user.username,
                 name: user.name,
                 email: user.email,
                 role: user.role
@@ -105,4 +107,66 @@ exports.renderLogin = (req, res) => {
 // Render Register Page
 exports.renderRegister = (req, res) => {
     res.render('register');
+};
+
+// Render Profile Page
+exports.renderProfile = (req, res) => {
+    res.render('profile', { profileUser: req.user });
+};
+
+// Update Profile
+exports.updateProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id).select('+password');
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const { name, email, currentPassword, newPassword, confirmPassword } = req.body;
+
+        if (name) {
+            user.name = name;
+        }
+
+        if (email) {
+            user.email = email;
+        }
+
+        if (newPassword || confirmPassword || currentPassword) {
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                return res.status(400).json({ message: 'Current password, new password, and confirmation are required.' });
+            }
+
+            if (newPassword !== confirmPassword) {
+                return res.status(400).json({ message: 'New password and confirmation do not match.' });
+            }
+
+            const isMatch = await user.matchPassword(currentPassword);
+            if (!isMatch) {
+                return res.status(401).json({ message: 'Current password is incorrect.' });
+            }
+
+            user.password = newPassword;
+        }
+
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            user: {
+                id: user._id,
+                username: user.username,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        if (error.code === 11000) {
+            return res.status(400).json({ message: 'Email already exists.' });
+        }
+
+        res.status(500).json({ message: error.message });
+    }
 };

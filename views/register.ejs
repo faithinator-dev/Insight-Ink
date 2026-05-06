@@ -22,13 +22,6 @@
                 </div>
                 <span class="error-message">Password must be at least 6 characters</span>
             </div>
-            <div class="form-group">
-                <label>Role</label>
-                <select name="role">
-                    <option value="user">User (Reader)</option>
-                    <option value="admin">Admin (Author)</option>
-                </select>
-            </div>
             <button type="submit" class="btn-auth" id="reg-btn">
                 <span id="btn-text">Sign Up</span>
             </button>
@@ -62,7 +55,6 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
     const name = e.target.name.value;
     const email = e.target.email.value;
     const password = e.target.password.value;
-    const role = e.target.role.value;
 
     // Loading state
     regBtn.disabled = true;
@@ -72,7 +64,7 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
         const res = await fetch('/api/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, password, role })
+            body: JSON.stringify({ name, email, password })
         });
 
         const data = await res.json();

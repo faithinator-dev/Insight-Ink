@@ -1,7 +1,13 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 
 const UserSchema = new mongoose.Schema({
+    username: {
+        type: String,
+        unique: true,
+        trim: true
+    },
     name: {
         type: String,
         required: [true, 'Please add a name']
@@ -27,6 +33,18 @@ const UserSchema = new mongoose.Schema({
         default: 'user'
     }
 }, { timestamps: true });
+
+UserSchema.pre('validate', function() {
+    if (!this.username) {
+        const baseUsername = (this.name || this.email || 'user')
+            .toLowerCase()
+            .split('@')[0]
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '') || 'user';
+
+        this.username = `${baseUsername}-${crypto.randomBytes(3).toString('hex')}`;
+    }
+});
 
 // Encrypt password using bcrypt
 UserSchema.pre('save', async function() {
