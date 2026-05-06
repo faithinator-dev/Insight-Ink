@@ -14,8 +14,8 @@ exports.renderSuperAdminPortal = async (req, res) => {
             Post.aggregate([
                 {
                     $project: {
-                        commentCount: { $size: '$comments' },
-                        likeCount: { $size: '$likes' },
+                        commentCount: { $size: { $ifNull: ['$comments', []] } },
+                        likeCount: { $size: { $ifNull: ['$likes', []] } },
                     },
                 },
                 {

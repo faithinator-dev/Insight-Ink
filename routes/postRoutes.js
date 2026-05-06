@@ -22,12 +22,12 @@ const {
 router.get('/', renderPosts);
 router.get('/post/:id', renderPost);
 router.get('/edit/:id', protect, renderEditPost);
-router.get('/write', protect, authorize('admin', 'user'), (req, res) => {
+router.get('/write', protect, authorize('admin', 'user', 'superadmin'), (req, res) => {
     res.render('write');
 });
 
 // API routes
-router.post('/api/posts', protect, authorize('admin', 'user'), createPost); // Changed to allow 'user' too
+router.post('/api/posts', protect, authorize('admin', 'user', 'superadmin'), createPost); // Changed to allow 'user' too
 router.get('/api/posts', getPosts);
 router.get('/api/posts/:id', getPost);
 router.put('/api/posts/:id', protect, updatePost);

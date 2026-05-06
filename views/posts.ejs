@@ -49,14 +49,96 @@
 </style>
 
 <script>
+function requestDeleteReason(promptText) {
+    return new Promise((resolve) => {
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.inset = '0';
+        overlay.style.background = 'rgba(0, 0, 0, 0.55)';
+        overlay.style.display = 'flex';
+        overlay.style.alignItems = 'center';
+        overlay.style.justifyContent = 'center';
+        overlay.style.zIndex = '2000';
+
+        const dialog = document.createElement('div');
+        dialog.style.width = 'min(520px, calc(100vw - 32px))';
+        dialog.style.background = 'var(--primary-bg)';
+        dialog.style.border = '1px solid var(--border-color)';
+        dialog.style.borderRadius = '16px';
+        dialog.style.padding = '22px';
+        dialog.style.boxShadow = '0 24px 60px rgba(0, 0, 0, 0.2)';
+
+        const title = document.createElement('h3');
+        title.textContent = 'Delete reason required';
+        title.style.marginBottom = '10px';
+
+        const description = document.createElement('p');
+        description.textContent = promptText;
+        description.style.color = 'var(--text-muted)';
+        description.style.marginBottom = '12px';
+
+        const textarea = document.createElement('textarea');
+        textarea.placeholder = 'Type the reason for this deletion...';
+        textarea.style.width = '100%';
+        textarea.style.minHeight = '120px';
+        textarea.style.resize = 'vertical';
+        textarea.style.padding = '12px';
+        textarea.style.border = '1px solid var(--border-color)';
+        textarea.style.borderRadius = '12px';
+        textarea.style.background = 'var(--secondary-bg)';
+        textarea.style.color = 'var(--text-main)';
+        textarea.style.marginBottom = '16px';
+
+        const actions = document.createElement('div');
+        actions.style.display = 'flex';
+        actions.style.justifyContent = 'flex-end';
+        actions.style.gap = '10px';
+
+        const cancelButton = document.createElement('button');
+        cancelButton.type = 'button';
+        cancelButton.textContent = 'Cancel';
+        cancelButton.className = 'btn-secondary mini';
+
+        const confirmButton = document.createElement('button');
+        confirmButton.type = 'button';
+        confirmButton.textContent = 'Delete';
+        confirmButton.className = 'btn-primary mini';
+
+        const cleanup = () => {
+            overlay.remove();
+        };
+
+        cancelButton.addEventListener('click', () => {
+            cleanup();
+            resolve(null);
+        });
+
+        confirmButton.addEventListener('click', () => {
+            const value = textarea.value.trim();
+            if (!value) {
+                textarea.focus();
+                textarea.style.borderColor = '#ff4d4d';
+                return;
+            }
+            cleanup();
+            resolve(value);
+        });
+
+        actions.append(cancelButton, confirmButton);
+        dialog.append(title, description, textarea, actions);
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+        textarea.focus();
+    });
+}
+
 async function deletePost(id, isOwner, role) {
     if (!confirm('Are you sure you want to delete this post?')) return;
     let deleteReason = '';
 
     if (!isOwner && (role === 'admin' || role === 'superadmin')) {
-        deleteReason = prompt('Enter a reason for deleting this post:') || '';
-        if (!deleteReason.trim()) {
-            alert('Delete reason is required for admin deletions.');
+        deleteReason = await requestDeleteReason('Enter a reason for deleting this post. This will be shown to the post owner as a notification.');
+        if (deleteReason === null) {
             return;
         }
     }

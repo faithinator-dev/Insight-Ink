@@ -2,6 +2,16 @@ const Post = require('../models/Post');
 const { recordActivity } = require('../utils/activityLogger');
 const { createNotification } = require('../utils/notificationService');
 
+const ensurePostArrays = (post) => {
+    if (!Array.isArray(post.likes)) {
+        post.likes = [];
+    }
+
+    if (!Array.isArray(post.comments)) {
+        post.comments = [];
+    }
+};
+
 // Create a new post
 exports.createPost = async (req, res) => {
     try {
@@ -40,6 +50,7 @@ exports.getPosts = async (req, res) => {
         const posts = await Post.find().sort({ createdAt: -1 });
         res.json(posts);
     } catch (error) {
+        console.error('getPosts error:', error);
         res.status(500).json({ message: 'Server Error' });
     }
 };
@@ -51,6 +62,7 @@ exports.getPost = async (req, res) => {
         if (!post) return res.status(404).json({ message: 'Post not found' });
         res.json(post);
     } catch (error) {
+        console.error('getPost error:', error);
         res.status(500).json({ message: 'Server Error' });
     }
 };
@@ -84,17 +96,19 @@ exports.toggleLike = async (req, res) => {
         const post = await Post.findById(req.params.id);
         if (!post) return res.status(404).json({ message: 'Post not found' });
 
-        const index = post.likes.indexOf(req.user._id);
-        const action = index === -1 ? 'post_liked' : 'post_unliked';
-        if (index === -1) {
-            // Like
-            post.likes.push(req.user._id);
+        ensurePostArrays(post);
+
+        const isLiked = post.likes.some((likeId) => likeId.toString() === req.user._id.toString());
+        const action = isLiked ? 'post_unliked' : 'post_liked';
+
+        if (isLiked) {
+            await Post.updateOne({ _id: post._id }, { $pull: { likes: req.user._id } });
         } else {
-            // Unlike
-            post.likes.splice(index, 1);
+            await Post.updateOne({ _id: post._id }, { $addToSet: { likes: req.user._id } });
         }
 
-        await post.save();
+        const updatedPost = await Post.findById(post._id).select('likes').lean();
+        const likes = Array.isArray(updatedPost?.likes) ? updatedPost.likes : [];
         await recordActivity({
             type: 'post',
             action,
@@ -105,7 +119,7 @@ exports.toggleLike = async (req, res) => {
             entityId: String(post._id),
             entityName: post.title,
         });
-        res.json({ success: true, likes: post.likes.length, isLiked: index === -1 });
+        res.json({ success: true, likes: likes.length, isLiked: !isLiked });
     } catch (error) {
         res.status(500).json({ message: 'Server Error' });
     }
@@ -118,6 +132,8 @@ exports.addComment = async (req, res) => {
         const post = await Post.findById(req.params.id);
         if (!post) return res.status(404).json({ message: 'Post not found' });
 
+        ensurePostArrays(post);
+
         const newComment = {
             text,
             author: req.user.name,
@@ -126,8 +142,10 @@ exports.addComment = async (req, res) => {
             replies: []
         };
 
-        post.comments.push(newComment);
-        await post.save();
+        await Post.updateOne({ _id: post._id }, { $push: { comments: newComment } });
+
+        const updatedPost = await Post.findById(post._id).select('comments').lean();
+        const comment = updatedPost?.comments?.[updatedPost.comments.length - 1] || newComment;
 
         await recordActivity({
             type: 'comment',
@@ -136,11 +154,11 @@ exports.addComment = async (req, res) => {
             userName: req.user.name,
             role: req.user.role,
             entityType: 'comment',
-            entityId: String(post.comments[post.comments.length - 1]._id),
+            entityId: String(comment._id),
             entityName: post.title,
         });
 
-        res.json({ success: true, comment: post.comments[post.comments.length - 1] });
+        res.json({ success: true, comment });
     } catch (error) {
         res.status(500).json({ message: 'Server Error' });
     }
@@ -151,6 +169,7 @@ exports.renderEditPost = async (req, res) => {
     try {
         const post = await Post.findById(req.params.id);
         if (!post) return res.status(404).render('post', { post: { title: '404', content: 'Page not found' } });
+        ensurePostArrays(post);
         
         // Check if user is author or admin
         if (post.authorId.toString() !== req.user._id.toString() && req.user.role !== 'admin' && req.user.role !== 'superadmin') {
@@ -168,6 +187,7 @@ exports.updatePost = async (req, res) => {
     try {
         let post = await Post.findById(req.params.id);
         if (!post) return res.status(404).json({ message: 'Post not found' });
+        ensurePostArrays(post);
 
         // Check ownership
         if (post.authorId.toString() !== req.user._id.toString() && req.user.role !== 'admin' && req.user.role !== 'superadmin') {
@@ -203,6 +223,7 @@ exports.deletePost = async (req, res) => {
     try {
         const post = await Post.findById(req.params.id);
         if (!post) return res.status(404).json({ message: 'Post not found' });
+        ensurePostArrays(post);
 
         // Check ownership
         if (post.authorId.toString() !== req.user._id.toString() && req.user.role !== 'admin' && req.user.role !== 'superadmin') {
@@ -251,6 +272,7 @@ exports.updateComment = async (req, res) => {
         const { text } = req.body;
         const post = await Post.findById(req.params.id);
         if (!post) return res.status(404).json({ message: 'Post not found' });
+        ensurePostArrays(post);
 
         const comment = post.comments.id(req.params.commentId);
         if (!comment) return res.status(404).json({ message: 'Comment not found' });
@@ -261,8 +283,10 @@ exports.updateComment = async (req, res) => {
             return res.status(401).json({ message: 'Not authorized to edit this comment' });
         }
 
-        comment.text = text;
-        await post.save();
+        await Post.updateOne(
+            { _id: post._id, 'comments._id': req.params.commentId },
+            { $set: { 'comments.$.text': text } }
+        );
         await recordActivity({
             type: 'comment',
             action: 'comment_updated',
@@ -274,6 +298,7 @@ exports.updateComment = async (req, res) => {
             entityName: post.title,
         });
 
+        comment.text = text;
         res.json({ success: true, comment });
     } catch (error) {
         res.status(500).json({ message: 'Server Error' });
@@ -285,6 +310,7 @@ exports.deleteComment = async (req, res) => {
     try {
         const post = await Post.findById(req.params.id);
         if (!post) return res.status(404).json({ message: 'Post not found' });
+        ensurePostArrays(post);
 
         const comment = post.comments.id(req.params.commentId);
         if (!comment) return res.status(404).json({ message: 'Comment not found' });
@@ -302,8 +328,10 @@ exports.deleteComment = async (req, res) => {
             return res.status(400).json({ message: 'Please provide a delete reason for this notice.' });
         }
 
-        comment.remove(); // Use subdocument remove method
-        await post.save();
+        await Post.updateOne(
+            { _id: post._id },
+            { $pull: { comments: { _id: comment._id } } }
+        );
 
         await recordActivity({
             type: 'comment',
@@ -341,6 +369,7 @@ exports.addReply = async (req, res) => {
         const { text, commentId } = req.body;
         const post = await Post.findById(req.params.id);
         if (!post) return res.status(404).json({ message: 'Post not found' });
+        ensurePostArrays(post);
 
         const comment = post.comments.id(commentId);
         if (!comment) return res.status(404).json({ message: 'Comment not found' });
@@ -352,8 +381,10 @@ exports.addReply = async (req, res) => {
             date: new Date()
         };
 
-        comment.replies.push(newReply);
-        await post.save();
+        await Post.updateOne(
+            { _id: post._id, 'comments._id': comment._id },
+            { $push: { 'comments.$.replies': newReply } }
+        );
 
         await recordActivity({
             type: 'comment',

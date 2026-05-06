@@ -31,7 +31,7 @@
                         <div class="profile-dropdown hidden" id="profile-dropdown">
                             <a href="/profile" class="profile-dropdown-link">View profile</a>
                             <a href="/profile" class="profile-dropdown-link">Edit profile</a>
-                            <% if (user.role === 'superadmin') { %>
+                            <% if (user.role === 'admin' || user.role === 'superadmin') { %>
                                 <a href="/super-admin" class="profile-dropdown-link">Super admin portal</a>
                             <% } %>
                             <a href="/logout" class="profile-dropdown-link danger">Logout</a>
