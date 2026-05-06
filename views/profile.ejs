@@ -252,8 +252,58 @@
     }
 
     .profile-hero {
+        flex-direction: column;
         align-items: flex-start;
     }
+
+    .profile-page {
+        margin-top: 28px;
+    }
+
+    .summary-row,
+    .notification-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .summary-row strong {
+        text-align: left;
+    }
+
+    .mark-read-btn {
+        align-self: flex-start;
+    }
+
+    .profile-save-btn,
+    .profile-logout-btn {
+        display: block;
+        width: 100%;
+    }
+}
+
+@media (max-width: 520px) {
+    .profile-hero {
+        gap: 16px;
+    }
+
+    .profile-hero h1 {
+        font-size: 2rem;
+    }
+
+    .profile-avatar-lg {
+        width: 60px;
+        height: 60px;
+        font-size: 1.6rem;
+    }
+
+    .profile-card {
+        padding: 18px;
+    }
+
+    .profile-form input {
+        font-size: 0.95rem;
+    }
+
 }
 </style>
 

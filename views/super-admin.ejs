@@ -1,5 +1,7 @@
 <%- include('partials/header') %>
 
+<% const mailNotices = typeof recentNotices !== 'undefined' && Array.isArray(recentNotices) ? recentNotices : []; %>
+
 <div class="super-admin-page">
     <section class="portal-hero">
         <div>
@@ -104,6 +106,72 @@
     </section>
 
     <section class="portal-grid single">
+        <article class="panel notice-panel">
+            <div class="panel-header">
+                <h2>Send mail to user</h2>
+                <span>Super admin only</span>
+            </div>
+            <form id="notice-form" class="notice-form">
+                <label>
+                    Recipient
+                    <select name="userId" required>
+                        <option value="">Choose a user</option>
+                        <% allUsers.forEach(account => { %>
+                            <option value="<%= account._id %>" <%= account.email ? '' : 'disabled' %>><%= account.name || account.username || account.email || 'User' %> (@<%= account.username || 'no-username' %>) · <%= account.email || 'no-email' %> · <%= account.role %></option>
+                        <% }) %>
+                    </select>
+                    <small>Only users with an email address can receive mail.</small>
+                </label>
+
+                <label>
+                    Subject
+                    <input type="text" name="subject" placeholder="Policy update, reminder, approval..." required>
+                </label>
+
+                <label>
+                    Message
+                    <textarea name="message" rows="5" placeholder="Write the email you want the user to receive." required></textarea>
+                </label>
+
+                <button type="submit" class="promote-btn notice-submit-btn">Send mail</button>
+            </form>
+        </article>
+    </section>
+
+    <section class="portal-grid single">
+        <article class="panel">
+            <div class="panel-header">
+                <h2>Recent mail notices</h2>
+                <span><%= mailNotices.length %> shown</span>
+            </div>
+            <div class="table-list">
+                <% if (mailNotices.length > 0) { %>
+                    <% mailNotices.forEach(notice => { %>
+                        <div class="table-row notice-row">
+                            <div>
+                                <strong><%= notice.title %></strong>
+                                <p>
+                                    To <%= notice.userId && notice.userId.name ? notice.userId.name : 'Unknown user' %>
+                                    <% if (notice.userId && notice.userId.email) { %>
+                                        · <%= notice.userId.email %>
+                                    <% } %>
+                                </p>
+                                <p class="notice-message"><%= notice.message %></p>
+                            </div>
+                            <div class="row-meta">
+                                <span><%= notice.read ? 'read' : 'unread' %></span>
+                                <time><%= new Date(notice.createdAt).toLocaleString() %></time>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <p class="empty-state">No admin notices have been sent yet.</p>
+                <% } %>
+            </div>
+        </article>
+    </section>
+
+    <section class="portal-grid single">
         <article class="panel">
             <div class="panel-header">
                 <h2>Recent posts</h2>
@@ -151,12 +219,43 @@
 .activity-row:first-child, .table-row:first-child { border-top: none; padding-top: 0; }
 .activity-main strong, .table-row strong a { color: var(--text-main); text-decoration: none; }
 .activity-main p, .table-row p { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
+.notice-message { color: var(--text-main); margin-top: 8px; white-space: pre-wrap; }
 .activity-meta, .row-meta { text-align: right; color: var(--text-muted); font-size: 0.82rem; display: grid; gap: 4px; align-content: center; }
 .row-actions { display: grid; justify-items: end; gap: 10px; }
 .promote-btn { border: 1px solid var(--border-color); background: var(--secondary-bg); color: var(--text-main); border-radius: 999px; padding: 8px 12px; cursor: pointer; }
+.notice-form { display: grid; gap: 16px; }
+.notice-form label { display: grid; gap: 8px; font-size: 0.92rem; color: var(--text-muted); }
+.notice-form small { color: var(--text-muted); font-size: 0.8rem; }
+.notice-form input, .notice-form select, .notice-form textarea { width: 100%; border: 1px solid var(--border-color); border-radius: 12px; background: var(--secondary-bg); color: var(--text-main); padding: 12px 14px; font-size: 1rem; }
+.notice-form input:focus, .notice-form select:focus, .notice-form textarea:focus { outline: none; border-color: var(--accent-color); }
+.notice-form textarea { resize: vertical; min-height: 140px; }
+.notice-submit-btn { justify-self: start; }
 .empty-state { color: var(--text-muted); }
-@media (max-width: 1100px) { .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .portal-grid { grid-template-columns: 1fr; } }
-@media (max-width: 720px) { .portal-hero { flex-direction: column; } .metric-grid { grid-template-columns: 1fr; } .activity-row, .table-row { flex-direction: column; } .activity-meta, .row-meta { text-align: left; } .row-actions { justify-items: start; } }
+@media (max-width: 1100px) {
+    .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .portal-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+    .super-admin-page { margin-top: 24px; }
+    .portal-hero { flex-direction: column; }
+    .portal-badge { text-align: left; min-width: 0; width: 100%; }
+    .metric-grid { grid-template-columns: 1fr; }
+    .activity-row, .table-row { flex-direction: column; }
+    .activity-meta, .row-meta { text-align: left; }
+    .row-actions { justify-items: start; }
+    .panel { padding: 18px; }
+    .notice-form select,
+    .notice-form input,
+    .notice-form textarea { font-size: 0.96rem; }
+    .notice-submit-btn,
+    .promote-btn { width: 100%; }
+}
+@media (max-width: 520px) {
+    .portal-hero h1 { font-size: 2.1rem; }
+    .metric-card strong { font-size: 1.7rem; }
+    .panel-header { flex-direction: column; align-items: flex-start; }
+    .notice-form { gap: 14px; }
+}
 </style>
 
 <script>
@@ -180,6 +279,43 @@ document.querySelectorAll('.promote-btn').forEach((button) => {
         }
     });
 });
+
+const noticeForm = document.getElementById('notice-form');
+
+if (noticeForm) {
+    noticeForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const formData = new FormData(noticeForm);
+        const userId = formData.get('userId');
+        const subject = formData.get('subject');
+        const message = formData.get('message');
+
+        if (!userId) {
+            alert('Choose a recipient first.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/super-admin/users/${userId}/notice`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ subject, message }),
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                noticeForm.reset();
+                alert(data.message || 'Mail sent successfully.');
+            } else {
+                alert(data.message || 'Could not send mail.');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Could not send mail.');
+        }
+    });
+}
 </script>
 
 <%- include('partials/footer') %>

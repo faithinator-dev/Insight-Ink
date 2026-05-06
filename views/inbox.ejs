@@ -1,0 +1,89 @@
+<%- include('partials/header') %>
+
+<div class="inbox-page">
+    <section class="inbox-hero">
+        <div>
+            <p class="eyebrow">Inbox</p>
+            <h1>Your messages</h1>
+            <p class="inbox-intro">Admin notices, moderation updates, and system messages arrive here.</p>
+        </div>
+        <div class="inbox-badge">
+            <span>Unread</span>
+            <strong><%= unreadCount %></strong>
+        </div>
+    </section>
+
+    <section class="inbox-card">
+        <% if (notifications && notifications.length > 0) { %>
+            <div class="inbox-list">
+                <% notifications.forEach(notification => { %>
+                    <article class="inbox-item <%= notification.read ? 'read' : 'unread' %>">
+                        <div class="inbox-item-main">
+                            <div class="inbox-item-top">
+                                <strong><%= notification.title %></strong>
+                                <span><%= notification.type.replace(/_/g, ' ') %></span>
+                            </div>
+                            <p><%= notification.message %></p>
+                            <small><%= new Date(notification.createdAt).toLocaleString() %></small>
+                        </div>
+                        <div class="inbox-item-actions">
+                            <button type="button" class="mark-read-btn" data-id="<%= notification._id %>" <%= notification.read ? 'disabled' : '' %>><%= notification.read ? 'Read' : 'Mark read' %></button>
+                        </div>
+                    </article>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <p class="empty-inbox">No messages yet.</p>
+        <% } %>
+    </section>
+</div>
+
+<style>
+.inbox-page { max-width: 980px; margin: 40px auto 60px; }
+.inbox-hero { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; margin-bottom: 24px; }
+.inbox-hero h1 { font-family: var(--font-serif); font-size: clamp(2rem, 4vw, 3.2rem); margin-bottom: 8px; }
+.inbox-intro { color: var(--text-muted); max-width: 620px; }
+.inbox-badge { background: var(--primary-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px 18px; min-width: 140px; text-align: right; }
+.inbox-badge span { display: block; color: var(--text-muted); font-size: 0.8rem; margin-bottom: 4px; }
+.inbox-card { background: var(--primary-bg); border: 1px solid var(--border-color); border-radius: 20px; padding: 20px; box-shadow: 0 10px 24px rgba(0, 0, 0, 0.04); }
+.inbox-list { display: grid; gap: 14px; }
+.inbox-item { border: 1px solid var(--border-color); border-radius: 18px; padding: 16px; display: flex; justify-content: space-between; gap: 16px; }
+.inbox-item.unread { background: rgba(74, 144, 226, 0.07); }
+.inbox-item.read { opacity: 0.82; }
+.inbox-item-top { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+.inbox-item-top span { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-color); }
+.inbox-item p { color: var(--text-main); line-height: 1.6; white-space: pre-wrap; }
+.inbox-item small { display: inline-block; margin-top: 8px; color: var(--text-muted); }
+.inbox-item-actions { display: flex; align-items: center; }
+.empty-inbox { color: var(--text-muted); }
+@media (max-width: 720px) {
+    .inbox-hero { flex-direction: column; }
+    .inbox-badge { text-align: left; width: 100%; }
+    .inbox-item { flex-direction: column; }
+    .inbox-item-actions .mark-read-btn { width: 100%; }
+}
+</style>
+
+<script>
+document.querySelectorAll('.mark-read-btn').forEach((button) => {
+    button.addEventListener('click', async () => {
+        try {
+            const response = await fetch(`/api/notifications/${button.dataset.id}/read`, { method: 'PUT' });
+            const data = await response.json();
+            if (response.ok) {
+                button.disabled = true;
+                button.textContent = 'Read';
+                button.closest('.inbox-item').classList.remove('unread');
+                button.closest('.inbox-item').classList.add('read');
+            } else {
+                alert(data.message || 'Could not mark message read.');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Could not mark message read.');
+        }
+    });
+});
+</script>
+
+<%- include('partials/footer') %>

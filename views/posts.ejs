@@ -3,6 +3,9 @@
 <div class="posts-grid">
     <% if (posts.length > 0) { %>
         <% posts.forEach(post => { %>
+            <% const isLiked = user && post.likes && post.likes.some(likeId => likeId.toString() === user._id.toString()); %>
+            <% const likeCount = post.likes?.length || 0; %>
+            <% const commentCount = post.comments?.length || 0; %>
             <article class="post-card">
                 <div class="post-card-image">
                     <div class="placeholder-img"></div>
@@ -26,8 +29,18 @@
                     </p>
                     <div class="post-card-footer">
                         <div class="reactions">
-                            <span class="reaction"><i class="far fa-heart"></i> <%= post.reactions?.hearts || 0 %></span>
-                            <span class="reaction"><i class="far fa-comment"></i> <%= post.comments?.length || 0 %></span>
+                            <% if (user) { %>
+                                <button type="button" class="reaction reaction-like" data-post-id="<%= post._id %>" data-liked="<%= isLiked ? 'true' : 'false' %>" data-count="<%= likeCount %>">
+                                    <i class="<%= isLiked ? 'fas' : 'far' %> fa-heart"></i> <span class="reaction-count"><%= likeCount %></span>
+                                </button>
+                            <% } else { %>
+                                <a class="reaction reaction-link" href="/login" title="Sign in to like posts">
+                                    <i class="far fa-heart"></i> <span class="reaction-count"><%= likeCount %></span>
+                                </a>
+                            <% } %>
+                            <a class="reaction reaction-link" href="/post/<%= post._id %>#comments" title="Jump to comments">
+                                <i class="far fa-comment"></i> <span class="reaction-count"><%= commentCount %></span>
+                            </a>
                         </div>
                         <span class="read-time"><%= post.readTime || 5 %> min read</span>
                     </div>
@@ -46,9 +59,50 @@
 .card-author-actions { margin-left: auto; display: flex; gap: 8px; font-size: 0.8rem; }
 .mini-action-link, .mini-action-btn-text { color: var(--text-muted); text-decoration: none; border: none; background: none; cursor: pointer; padding: 0; }
 .mini-action-link:hover, .mini-action-btn-text:hover { color: var(--accent-color); }
+.reaction { display: inline-flex; align-items: center; gap: 5px; color: var(--text-muted); text-decoration: none; border: none; background: none; padding: 0; font: inherit; cursor: pointer; }
+.reaction:hover { color: var(--accent-color); }
+.reaction[disabled] { cursor: default; }
 </style>
 
 <script>
+document.querySelectorAll('.reaction-like').forEach((button) => {
+    button.addEventListener('click', async () => {
+        const postId = button.dataset.postId;
+
+        try {
+            const response = await fetch(`/api/posts/${postId}/like`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                alert(data.message || 'Could not update like.');
+                return;
+            }
+
+            const liked = Boolean(data.isLiked);
+            button.dataset.liked = String(liked);
+            button.dataset.count = String(data.likes);
+            const icon = button.querySelector('i');
+            const count = button.querySelector('.reaction-count');
+
+            if (icon) {
+                icon.className = liked ? 'fas fa-heart' : 'far fa-heart';
+            }
+
+            if (count) {
+                count.textContent = String(data.likes);
+            }
+
+            button.style.color = liked ? 'var(--accent-color)' : 'var(--text-muted)';
+        } catch (error) {
+            console.error(error);
+            alert('Could not update like.');
+        }
+    });
+});
+
 function requestDeleteReason(promptText) {
     return new Promise((resolve) => {
         const overlay = document.createElement('div');

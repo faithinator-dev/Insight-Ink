@@ -162,6 +162,25 @@ exports.renderProfile = async (req, res) => {
     }
 };
 
+exports.renderInbox = async (req, res) => {
+    try {
+        const notifications = await Notification.find({ userId: req.user._id })
+            .sort({ createdAt: -1 })
+            .limit(25)
+            .lean();
+
+        const unreadCount = notifications.filter((notification) => !notification.read).length;
+
+        res.render('inbox', {
+            profileUser: req.user,
+            notifications,
+            unreadCount,
+        });
+    } catch (error) {
+        res.status(500).send('Server Error');
+    }
+};
+
 // Update Profile
 exports.updateProfile = async (req, res) => {
     try {

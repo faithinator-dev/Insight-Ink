@@ -1,4 +1,5 @@
 const transporter = require('../config/mailer');
+const { buildContactEmail } = require('../utils/emailTemplates');
 
 exports.sendMail = async (req, res) => {
   try {
@@ -19,22 +20,15 @@ exports.sendMail = async (req, res) => {
       });
     }
 
+    const emailContent = buildContactEmail({ name, email, subject, message });
+
     const info = await transporter.sendMail({
       from: `Insight Ink <${fromAddress}>`,
       to: toAddress,
       replyTo: email,
-      subject: `New message: ${subject}`,
-      text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827;">
-          <h2 style="margin-bottom: 12px;">New Contact Message</h2>
-          <p><strong>Name:</strong> ${name}</p>
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Subject:</strong> ${subject}</p>
-          <p><strong>Message:</strong></p>
-          <div style="padding: 16px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; white-space: pre-wrap;">${message}</div>
-        </div>
-      `,
+      subject: emailContent.subject,
+      text: emailContent.text,
+      html: emailContent.html,
     });
 
     res.status(200).json({

@@ -7,6 +7,7 @@ const {
     renderLogin,
     renderRegister,
     renderProfile,
+    renderInbox,
     updateProfile
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
@@ -16,6 +17,7 @@ router.get('/login', renderLogin);
 router.get('/register', renderRegister);
 router.get('/logout', logout);
 router.get('/profile', protect, renderProfile);
+router.get('/inbox', protect, renderInbox);
 
 // API routes
 router.post('/api/register', register);
