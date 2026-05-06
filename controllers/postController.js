@@ -1,4 +1,6 @@
 const Post = require('../models/Post');
+const { recordActivity } = require('../utils/activityLogger');
+const { createNotification } = require('../utils/notificationService');
 
 // Create a new post
 exports.createPost = async (req, res) => {
@@ -11,6 +13,17 @@ exports.createPost = async (req, res) => {
             readTime: readTime || 5,
             author: req.user.name,
             authorId: req.user._id
+        });
+        await recordActivity({
+            type: 'post',
+            action: 'post_created',
+            userId: req.user._id,
+            userName: req.user.name,
+            role: req.user.role,
+            entityType: 'post',
+            entityId: String(post._id),
+            entityName: post.title,
+            metadata: { readTime: post.readTime },
         });
         res.status(201).json(post);
     } catch (error) {
@@ -72,6 +85,7 @@ exports.toggleLike = async (req, res) => {
         if (!post) return res.status(404).json({ message: 'Post not found' });
 
         const index = post.likes.indexOf(req.user._id);
+        const action = index === -1 ? 'post_liked' : 'post_unliked';
         if (index === -1) {
             // Like
             post.likes.push(req.user._id);
@@ -81,6 +95,16 @@ exports.toggleLike = async (req, res) => {
         }
 
         await post.save();
+        await recordActivity({
+            type: 'post',
+            action,
+            userId: req.user._id,
+            userName: req.user.name,
+            role: req.user.role,
+            entityType: 'post',
+            entityId: String(post._id),
+            entityName: post.title,
+        });
         res.json({ success: true, likes: post.likes.length, isLiked: index === -1 });
     } catch (error) {
         res.status(500).json({ message: 'Server Error' });
@@ -105,6 +129,17 @@ exports.addComment = async (req, res) => {
         post.comments.push(newComment);
         await post.save();
 
+        await recordActivity({
+            type: 'comment',
+            action: 'comment_created',
+            userId: req.user._id,
+            userName: req.user.name,
+            role: req.user.role,
+            entityType: 'comment',
+            entityId: String(post.comments[post.comments.length - 1]._id),
+            entityName: post.title,
+        });
+
         res.json({ success: true, comment: post.comments[post.comments.length - 1] });
     } catch (error) {
         res.status(500).json({ message: 'Server Error' });
@@ -118,7 +153,7 @@ exports.renderEditPost = async (req, res) => {
         if (!post) return res.status(404).render('post', { post: { title: '404', content: 'Page not found' } });
         
         // Check if user is author or admin
-        if (post.authorId.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+        if (post.authorId.toString() !== req.user._id.toString() && req.user.role !== 'admin' && req.user.role !== 'superadmin') {
             return res.status(401).redirect('/post/' + post._id);
         }
         
@@ -135,7 +170,7 @@ exports.updatePost = async (req, res) => {
         if (!post) return res.status(404).json({ message: 'Post not found' });
 
         // Check ownership
-        if (post.authorId.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+        if (post.authorId.toString() !== req.user._id.toString() && req.user.role !== 'admin' && req.user.role !== 'superadmin') {
             return res.status(401).json({ message: 'Not authorized to update this post' });
         }
 
@@ -147,6 +182,16 @@ exports.updatePost = async (req, res) => {
         post.readTime = readTime || post.readTime;
 
         await post.save();
+        await recordActivity({
+            type: 'post',
+            action: 'post_updated',
+            userId: req.user._id,
+            userName: req.user.name,
+            role: req.user.role,
+            entityType: 'post',
+            entityId: String(post._id),
+            entityName: post.title,
+        });
         res.json(post);
     } catch (error) {
         res.status(500).json({ message: 'Server Error' });
@@ -160,11 +205,40 @@ exports.deletePost = async (req, res) => {
         if (!post) return res.status(404).json({ message: 'Post not found' });
 
         // Check ownership
-        if (post.authorId.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+        if (post.authorId.toString() !== req.user._id.toString() && req.user.role !== 'admin' && req.user.role !== 'superadmin') {
             return res.status(401).json({ message: 'Not authorized to delete this post' });
         }
 
+        const deleteReason = (req.body && req.body.deleteReason ? String(req.body.deleteReason) : '').trim();
+
+        if ((req.user.role === 'admin' || req.user.role === 'superadmin') && !deleteReason) {
+            return res.status(400).json({ message: 'Please provide a delete reason for this notice.' });
+        }
+
         await post.deleteOne();
+        await recordActivity({
+            type: 'post',
+            action: 'post_deleted',
+            userId: req.user._id,
+            userName: req.user.name,
+            role: req.user.role,
+            entityType: 'post',
+            entityId: String(post._id),
+            entityName: post.title,
+            message: deleteReason,
+        });
+
+        if (req.user.role === 'admin' || req.user.role === 'superadmin') {
+            await createNotification({
+                userId: post.authorId,
+                type: 'post_deleted',
+                title: 'Your post was removed',
+                message: deleteReason,
+                relatedEntityId: String(post._id),
+                relatedEntityType: 'post',
+                createdBy: req.user._id,
+            });
+        }
         res.json({ success: true, message: 'Post removed' });
     } catch (error) {
         res.status(500).json({ message: 'Server Error' });
@@ -183,12 +257,22 @@ exports.updateComment = async (req, res) => {
 
         // Check authorization: only comment author or admin can EDIT
         if (comment.authorId.toString() !== req.user._id.toString() && 
-            req.user.role !== 'admin') {
+            req.user.role !== 'admin' && req.user.role !== 'superadmin') {
             return res.status(401).json({ message: 'Not authorized to edit this comment' });
         }
 
         comment.text = text;
         await post.save();
+        await recordActivity({
+            type: 'comment',
+            action: 'comment_updated',
+            userId: req.user._id,
+            userName: req.user.name,
+            role: req.user.role,
+            entityType: 'comment',
+            entityId: String(comment._id),
+            entityName: post.title,
+        });
 
         res.json({ success: true, comment });
     } catch (error) {
@@ -208,12 +292,42 @@ exports.deleteComment = async (req, res) => {
         // Check authorization: comment author, post author, or admin
         if (comment.authorId.toString() !== req.user._id.toString() && 
             post.authorId.toString() !== req.user._id.toString() && 
-            req.user.role !== 'admin') {
+            req.user.role !== 'admin' && req.user.role !== 'superadmin') {
             return res.status(401).json({ message: 'Not authorized' });
+        }
+
+        const deleteReason = (req.body && req.body.deleteReason ? String(req.body.deleteReason) : '').trim();
+
+        if ((req.user.role === 'admin' || req.user.role === 'superadmin') && !deleteReason) {
+            return res.status(400).json({ message: 'Please provide a delete reason for this notice.' });
         }
 
         comment.remove(); // Use subdocument remove method
         await post.save();
+
+        await recordActivity({
+            type: 'comment',
+            action: 'comment_deleted',
+            userId: req.user._id,
+            userName: req.user.name,
+            role: req.user.role,
+            entityType: 'comment',
+            entityId: String(comment._id),
+            entityName: post.title,
+            message: deleteReason,
+        });
+
+        if (req.user.role === 'admin' || req.user.role === 'superadmin') {
+            await createNotification({
+                userId: comment.authorId,
+                type: 'comment_deleted',
+                title: 'Your comment was removed',
+                message: deleteReason,
+                relatedEntityId: String(comment._id),
+                relatedEntityType: 'comment',
+                createdBy: req.user._id,
+            });
+        }
 
         res.json({ success: true, message: 'Comment deleted' });
     } catch (error) {
@@ -240,6 +354,17 @@ exports.addReply = async (req, res) => {
 
         comment.replies.push(newReply);
         await post.save();
+
+        await recordActivity({
+            type: 'comment',
+            action: 'reply_created',
+            userId: req.user._id,
+            userName: req.user.name,
+            role: req.user.role,
+            entityType: 'reply',
+            entityId: String(comment._id),
+            entityName: post.title,
+        });
 
         res.json({ success: true, reply: newReply });
     } catch (error) {

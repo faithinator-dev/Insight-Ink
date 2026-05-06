@@ -9,7 +9,10 @@ const User = require('./models/User');
 
 const postRoutes = require('./routes/postRoutes');
 const mailRoutes = require('./routes/mailRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 const authRoutes = require('./routes/authRoutes');
+const { trackPageActivity } = require('./middleware/activity');
 
 const app = express();
 
@@ -47,10 +50,14 @@ app.use(async (req, res, next) => {
     next();
 });
 
+app.use(trackPageActivity);
+
 // Routes
 app.use('/', authRoutes);
 app.use('/', postRoutes);
 app.use('/api/mail', mailRoutes);
+app.use('/', adminRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // 404 handler
 app.use((req, res) => {

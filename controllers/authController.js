@@ -1,5 +1,7 @@
 const User = require('../models/User');
+const Notification = require('../models/Notification');
 const jwt = require('jsonwebtoken');
+const { recordActivity } = require('../utils/activityLogger');
 
 // @desc    Register user
 // @route   POST /api/auth/register
@@ -12,6 +14,17 @@ exports.register = async (req, res) => {
             email,
             password,
             role: 'user'
+        });
+
+        await recordActivity({
+            type: 'auth',
+            action: 'user_registered',
+            userId: user._id,
+            userName: user.name,
+            role: user.role,
+            entityType: 'user',
+            entityId: String(user._id),
+            entityName: user.email,
         });
 
         sendTokenResponse(user, 201, res);
@@ -46,6 +59,17 @@ exports.login = async (req, res) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
+        await recordActivity({
+            type: 'auth',
+            action: 'user_logged_in',
+            userId: user._id,
+            userName: user.name,
+            role: user.role,
+            entityType: 'user',
+            entityId: String(user._id),
+            entityName: user.email,
+        });
+
         sendTokenResponse(user, 200, res);
     } catch (error) {
         console.error(error);
@@ -56,6 +80,21 @@ exports.login = async (req, res) => {
 // @desc    Log user out / clear cookie
 // @route   GET /api/auth/logout
 exports.logout = (req, res) => {
+    const currentUser = res.locals.user;
+
+    if (currentUser) {
+        recordActivity({
+            type: 'auth',
+            action: 'user_logged_out',
+            userId: currentUser._id,
+            userName: currentUser.name,
+            role: currentUser.role,
+            entityType: 'user',
+            entityId: String(currentUser._id),
+            entityName: currentUser.email,
+        });
+    }
+
     res.clearCookie('token');
 
     if (req.accepts('html')) {
@@ -110,8 +149,17 @@ exports.renderRegister = (req, res) => {
 };
 
 // Render Profile Page
-exports.renderProfile = (req, res) => {
-    res.render('profile', { profileUser: req.user });
+exports.renderProfile = async (req, res) => {
+    try {
+        const notifications = await Notification.find({ userId: req.user._id })
+            .sort({ createdAt: -1 })
+            .limit(10)
+            .lean();
+
+        res.render('profile', { profileUser: req.user, notifications });
+    } catch (error) {
+        res.status(500).send('Server Error');
+    }
 };
 
 // Update Profile
