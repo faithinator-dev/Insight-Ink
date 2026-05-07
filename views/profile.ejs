@@ -2,11 +2,11 @@
 
 <div class="profile-page">
     <div class="profile-hero">
-        <div class="profile-avatar-lg"><%= profileUser.name.charAt(0).toUpperCase() %></div>
+        <div class="profile-avatar-lg"><%= ((profileUser.name || profileUser.username || 'U').charAt(0).toUpperCase()) %></div>
         <div>
             <h1>Your Profile</h1>
             <p>Edit your account details or log out from here.</p>
-            <p class="profile-username">@<%= profileUser.username %></p>
+            <p class="profile-username">@<%= profileUser.username || 'user' %></p>
         </div>
     </div>
 
@@ -16,12 +16,12 @@
             <form id="profile-form" class="profile-form">
                 <label>
                     Full name
-                    <input type="text" name="name" value="<%= profileUser.name %>" required>
+                    <input type="text" name="name" value="<%= profileUser.name || '' %>" required>
                 </label>
 
                 <label>
                     Email
-                    <input type="email" name="email" value="<%= profileUser.email %>" required>
+                    <input type="email" name="email" value="<%= profileUser.email || '' %>" required>
                 </label>
 
                 <label>
@@ -51,7 +51,7 @@
             </div>
             <div class="summary-row">
                 <span>Member since</span>
-                <strong><%= profileUser.createdAt.toDateString() %></strong>
+                <strong><%= profileUser.createdAt ? profileUser.createdAt.toDateString() : 'Unknown' %></strong>
             </div>
             <div class="profile-actions">
                 <a href="/logout" class="btn-secondary profile-logout-btn">Logout</a>

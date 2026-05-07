@@ -21,7 +21,7 @@
             <div class="nav-right">
                 <% if (user) { %>
                     <a href="/write" class="write-link"><i class="far fa-edit"></i> Write</a>
-                    <button class="btn-icon"><i class="far fa-bell"></i></button>
+                    <a href="/inbox" class="btn-icon" aria-label="Inbox"><i class="far fa-bell"></i></a>
                     <div class="profile-group" id="profile-group">
                         <button type="button" class="profile-trigger" id="profile-trigger" aria-haspopup="true" aria-expanded="false">
                             <div class="profile-circle"><%= (user && user.name) ? user.name.charAt(0).toUpperCase() : 'U' %></div>

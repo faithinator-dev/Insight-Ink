@@ -92,36 +92,51 @@ exports.promoteUserToAdmin = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
+        const displayName = user.name || user.username || user.email || 'User';
+
         if (user.role === 'superadmin') {
             return res.status(400).json({ message: 'Super admin role cannot be changed.' });
         }
 
+        await User.updateOne(
+            { _id: user._id },
+            { $set: { role: 'admin' } }
+        );
+
         user.role = 'admin';
-        await user.save();
 
-        await recordActivity({
-            type: 'system',
-            action: 'user_promoted_to_admin',
-            userId: req.user._id,
-            userName: req.user.name,
-            role: req.user.role,
-            entityType: 'user',
-            entityId: String(user._id),
-            entityName: user.email,
-        });
+        try {
+            await recordActivity({
+                type: 'system',
+                action: 'user_promoted_to_admin',
+                userId: req.user._id,
+                userName: req.user.name,
+                role: req.user.role,
+                entityType: 'user',
+                entityId: String(user._id),
+                entityName: displayName,
+            });
+        } catch (activityError) {
+            console.error('promoteUserToAdmin activity error:', activityError);
+        }
 
-        await createNotification({
-            userId: user._id,
-            type: 'admin_promotion',
-            title: 'You have been promoted to admin',
-            message: `${req.user.name} promoted you to admin access.`,
-            relatedEntityId: String(user._id),
-            relatedEntityType: 'user',
-            createdBy: req.user._id,
-        });
+        try {
+            await createNotification({
+                userId: user._id,
+                type: 'admin_promotion',
+                title: 'You have been promoted to admin',
+                message: `${req.user.name || 'An administrator'} promoted you to admin access.`,
+                relatedEntityId: String(user._id),
+                relatedEntityType: 'user',
+                createdBy: req.user._id,
+            });
+        } catch (notificationError) {
+            console.error('promoteUserToAdmin notification error:', notificationError);
+        }
 
-        res.json({ success: true, message: `${user.name} promoted to admin.` });
+        res.json({ success: true, message: `${displayName} promoted to admin.` });
     } catch (error) {
+        console.error('promoteUserToAdmin error:', error);
         res.status(500).json({ message: 'Server Error' });
     }
 };
