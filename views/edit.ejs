@@ -11,9 +11,33 @@
         <input type="text" name="title" class="input-title" placeholder="Title" required value="<%= post.title %>">
         <input type="text" name="excerpt" class="input-excerpt" placeholder="Short excerpt (optional)" maxlength="160" value="<%= post.excerpt %>">
         
+        <div class="editor-toolbar">
+            <div class="toolbar-group">
+                <button type="button" class="toolbar-btn" id="btn-bold" title="Bold (Ctrl+B)"><strong>B</strong></button>
+                <button type="button" class="toolbar-btn" id="btn-italic" title="Italic (Ctrl+I)"><em>I</em></button>
+                <button type="button" class="toolbar-btn" id="btn-underline" title="Underline (Ctrl+U)"><u>U</u></button>
+                <button type="button" class="toolbar-btn" id="btn-strikethrough" title="Strikethrough">S</button>
+            </div>
+            <div class="toolbar-group">
+                <button type="button" class="toolbar-btn" id="btn-h1" title="Heading 1">H1</button>
+                <button type="button" class="toolbar-btn" id="btn-h2" title="Heading 2">H2</button>
+                <button type="button" class="toolbar-btn" id="btn-h3" title="Heading 3">H3</button>
+            </div>
+            <div class="toolbar-group">
+                <button type="button" class="toolbar-btn" id="btn-list" title="Bullet List">• List</button>
+                <button type="button" class="toolbar-btn" id="btn-olist" title="Ordered List">1. List</button>
+                <button type="button" class="toolbar-btn" id="btn-quote" title="Quote">> Quote</button>
+                <button type="button" class="toolbar-btn" id="btn-code" title="Code Block">Code</button>
+            </div>
+            <div class="toolbar-group">
+                <button type="button" class="toolbar-btn" id="btn-link" title="Insert Link">Link</button>
+                <button type="button" class="toolbar-btn" id="btn-image" title="Insert Image">Image</button>
+            </div>
+        </div>
+
         <div class="editor-wrapper">
             <div class="editor-pane">
-                <textarea name="content" id="markdown-input" class="input-content" placeholder="Write in Markdown..." required><%= post.content %></textarea>
+                <textarea name="content" id="markdown-input" class="input-content" placeholder="Write in Markdown...&#10;💡 Tip: Use toolbar buttons or Ctrl+B, Ctrl+I, Ctrl+U, Shift+Enter for new line" required><%= post.content %></textarea>
             </div>
             <div class="preview-pane hidden" id="markdown-preview">
                 <!-- Markdown content will be rendered here -->
@@ -29,17 +53,70 @@
 .write-container { max-width: 900px; margin: 40px auto; }
 .write-form { display: flex; flex-direction: column; gap: 15px; }
 .write-actions-top { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 20px; }
+
+/* Toolbar Styles */
+.editor-toolbar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 12px;
+    background: var(--secondary-bg);
+    border-radius: 8px 8px 0 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.toolbar-group {
+    display: flex;
+    gap: 4px;
+    padding: 0 8px;
+    border-right: 1px solid var(--border-color);
+}
+
+.toolbar-group:last-child {
+    border-right: none;
+}
+
+.toolbar-btn {
+    background: var(--primary-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    min-width: 40px;
+}
+
+.toolbar-btn:hover {
+    background: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
+
+.toolbar-btn:active {
+    transform: scale(0.95);
+}
+
+/* Editor wrapper */
 .editor-wrapper { display: flex; gap: 20px; min-height: 500px; }
 .editor-pane, .preview-pane { flex: 1; width: 100%; }
 .hidden { display: none; }
 .input-title { font-size: 2.5rem; font-weight: 700; border: none; outline: none; width: 100%; background: transparent; color: var(--text-main); }
 .input-excerpt { font-size: 1.2rem; border: none; outline: none; width: 100%; background: transparent; color: var(--text-muted); margin-bottom: 10px; }
 .input-content { 
-    font-size: 1.1rem; border: none; outline: none; font-family: 'Courier New', monospace; 
-    width: 100%; height: 100%; min-height: 450px; resize: none; background: transparent; 
+    font-size: 1.1rem; border: 1px solid var(--border-color); outline: none; font-family: 'Courier New', monospace; 
+    width: 100%; height: 100%; min-height: 450px; resize: none; background: var(--primary-bg); 
     color: var(--text-main); line-height: 1.6; padding: 10px;
-    border-left: 2px solid var(--border-color);
+    border-radius: 0 0 8px 0;
+    transition: border-color 0.2s;
 }
+
+.input-content:focus {
+    border-color: var(--accent-color);
+}
+
 .preview-pane { 
     font-family: var(--font-serif); font-size: 1.2rem; line-height: 1.6; 
     padding: 10px; border-left: 2px solid var(--accent-color);
@@ -96,6 +173,119 @@ const toggleBtn = document.getElementById('toggle-preview');
 // Real-time preview update
 input.addEventListener('input', () => {
     preview.innerHTML = marked.parse(input.value);
+});
+
+// Helper function to insert formatted text at cursor
+function insertMarkdown(before, after = '') {
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+    const selectedText = input.value.substring(start, end) || 'text';
+    const beforeSelection = input.value.substring(0, start);
+    const afterSelection = input.value.substring(end);
+    
+    input.value = beforeSelection + before + selectedText + after + afterSelection;
+    input.focus();
+    
+    // Update preview
+    preview.innerHTML = marked.parse(input.value);
+    
+    // Trigger input event for form tracking
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+// Toolbar Button Handlers
+document.getElementById('btn-bold').addEventListener('click', (e) => {
+    e.preventDefault();
+    insertMarkdown('**', '**');
+});
+
+document.getElementById('btn-italic').addEventListener('click', (e) => {
+    e.preventDefault();
+    insertMarkdown('*', '*');
+});
+
+document.getElementById('btn-underline').addEventListener('click', (e) => {
+    e.preventDefault();
+    insertMarkdown('<u>', '</u>');
+});
+
+document.getElementById('btn-strikethrough').addEventListener('click', (e) => {
+    e.preventDefault();
+    insertMarkdown('~~', '~~');
+});
+
+document.getElementById('btn-h1').addEventListener('click', (e) => {
+    e.preventDefault();
+    insertMarkdown('# ', '');
+});
+
+document.getElementById('btn-h2').addEventListener('click', (e) => {
+    e.preventDefault();
+    insertMarkdown('## ', '');
+});
+
+document.getElementById('btn-h3').addEventListener('click', (e) => {
+    e.preventDefault();
+    insertMarkdown('### ', '');
+});
+
+document.getElementById('btn-list').addEventListener('click', (e) => {
+    e.preventDefault();
+    insertMarkdown('- ', '');
+});
+
+document.getElementById('btn-olist').addEventListener('click', (e) => {
+    e.preventDefault();
+    insertMarkdown('1. ', '');
+});
+
+document.getElementById('btn-quote').addEventListener('click', (e) => {
+    e.preventDefault();
+    insertMarkdown('> ', '');
+});
+
+document.getElementById('btn-code').addEventListener('click', (e) => {
+    e.preventDefault();
+    insertMarkdown('```\n', '\n```');
+});
+
+document.getElementById('btn-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    insertMarkdown('[Link text](', ')');
+});
+
+document.getElementById('btn-image').addEventListener('click', (e) => {
+    e.preventDefault();
+    insertMarkdown('![Alt text](', ')');
+});
+
+// Keyboard Shortcuts
+input.addEventListener('keydown', (e) => {
+    // Ctrl+B for Bold
+    if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+        e.preventDefault();
+        insertMarkdown('**', '**');
+    }
+    // Ctrl+I for Italic
+    else if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+        e.preventDefault();
+        insertMarkdown('*', '*');
+    }
+    // Ctrl+U for Underline
+    else if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
+        e.preventDefault();
+        insertMarkdown('<u>', '</u>');
+    }
+    // Shift+Enter for new line (soft break)
+    else if (e.shiftKey && e.key === 'Enter') {
+        e.preventDefault();
+        insertMarkdown('\n', '');
+    }
+    // Ctrl+Enter for new paragraph
+    else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        insertMarkdown('\n\n', '');
+    }
 });
 
 // Toggle Preview Mode

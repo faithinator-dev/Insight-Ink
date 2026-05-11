@@ -218,3 +218,108 @@ exports.sendNoticeToUser = async (req, res) => {
         res.status(500).json({ message: 'Server Error' });
     }
 };
+
+exports.sendGroupNotice = async (req, res) => {
+    try {
+        const { target, subject, message } = req.body;
+
+        if (!target || !subject || !message) {
+            return res.status(400).json({ message: 'Target group, subject and message are required.' });
+        }
+
+        let query = {};
+        if (target === 'admins') {
+            query = { role: { $in: ['admin', 'superadmin'] } };
+        } else if (target === 'users') {
+            query = { role: 'user' };
+        } else if (target === 'all') {
+            query = {};
+        } else {
+            return res.status(400).json({ message: 'Invalid target group.' });
+        }
+
+        const users = await User.find(query).select('name username email role');
+        
+        if (!users || users.length === 0) {
+            return res.status(404).json({ message: 'No users found in the selected group.' });
+        }
+
+        const cleanSubject = String(subject).trim();
+        const cleanMessage = String(message).trim();
+
+        const fromAddress = process.env.SMTP_FROM || process.env.SMTP_USER;
+        const results = {
+            total: users.length,
+            notificationsCreated: 0,
+            emailsSent: 0
+        };
+
+        // For large groups, this should ideally be queued, but for this project we'll process it directly
+        for (const user of users) {
+            // Create in-app notification
+            try {
+                await createNotification({
+                    userId: user._id,
+                    type: 'admin_notice',
+                    title: cleanSubject,
+                    message: cleanMessage,
+                    relatedEntityId: String(user._id),
+                    relatedEntityType: 'user',
+                    createdBy: req.user._id,
+                });
+                results.notificationsCreated++;
+            } catch (err) {
+                console.error(`Failed to create notification for ${user.email || user.username}:`, err);
+            }
+
+            // Send email if they have one
+            if (user.email && fromAddress) {
+                try {
+                    const emailContent = buildAdminNoticeEmail({
+                        recipientName: user.name || user.username || 'there',
+                        senderName: req.user.name || 'An administrator',
+                        subject: cleanSubject,
+                        message: cleanMessage,
+                        portalUrl: `${req.protocol}://${req.get('host')}/profile`,
+                    });
+
+                    await transporter.sendMail({
+                        from: `Insight Ink <${fromAddress}>`,
+                        to: user.email,
+                        subject: emailContent.subject,
+                        text: emailContent.text,
+                        html: emailContent.html,
+                    });
+                    results.emailsSent++;
+                } catch (emailError) {
+                    console.error(`sendGroupNotice email error for ${user.email}:`, emailError);
+                }
+            }
+        }
+
+        await recordActivity({
+            type: 'system',
+            action: 'group_notice_sent',
+            userId: req.user._id,
+            userName: req.user.name,
+            role: req.user.role,
+            entityType: 'group',
+            entityId: target,
+            entityName: target,
+            message: cleanSubject,
+            metadata: { 
+                recipientCount: users.length,
+                emailsSent: results.emailsSent
+            }
+        });
+
+        res.json({ 
+            success: true, 
+            ...results, 
+            message: `Group notice sent to ${results.notificationsCreated} users and ${results.emailsSent} emails dispatched.` 
+        });
+    } catch (error) {
+        console.error('sendGroupNotice error:', error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
