@@ -105,6 +105,23 @@ exports.toggleLike = async (req, res) => {
             await Post.updateOne({ _id: post._id }, { $pull: { likes: req.user._id } });
         } else {
             await Post.updateOne({ _id: post._id }, { $addToSet: { likes: req.user._id } });
+            
+            // Create notification for post author when liked (only if post author is different from liker)
+            if (post.authorId && post.authorId.toString() !== req.user._id.toString()) {
+                try {
+                    await createNotification({
+                        userId: post.authorId,
+                        type: 'system',
+                        title: `${req.user.name} liked your post`,
+                        message: `"${post.title}" just received a like`,
+                        relatedEntityId: String(post._id),
+                        relatedEntityType: 'post',
+                        createdBy: req.user._id,
+                    });
+                } catch (notifErr) {
+                    console.error('Notification error on like:', notifErr);
+                }
+            }
         }
 
         const updatedPost = await Post.findById(post._id).select('likes').lean();
@@ -146,6 +163,23 @@ exports.addComment = async (req, res) => {
 
         const updatedPost = await Post.findById(post._id).select('comments').lean();
         const comment = updatedPost?.comments?.[updatedPost.comments.length - 1] || newComment;
+
+        // Create notification for post author when commented
+        if (post.authorId && post.authorId.toString() !== req.user._id.toString()) {
+            try {
+                await createNotification({
+                    userId: post.authorId,
+                    type: 'system',
+                    title: `${req.user.name} commented on your post`,
+                    message: `"${text.substring(0, 60)}${text.length > 60 ? '...' : ''}"`,
+                    relatedEntityId: String(post._id),
+                    relatedEntityType: 'post',
+                    createdBy: req.user._id,
+                });
+            } catch (notifErr) {
+                console.error('Notification error on comment:', notifErr);
+            }
+        }
 
         await recordActivity({
             type: 'comment',

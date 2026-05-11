@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Insight-Ink</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <a href="index.html" class="logo">Insight-Ink</a>
+            <ul class="nav-links">
+                <li id="user-nav" style="display: none;" class="flex items-center gap-10">
+                    <a href="write.html" class="btn btn-primary">Write</a>
+                    <a href="inbox.html">Inbox</a>
+                    <a href="admin.html" id="admin-link" style="display: none;">Dashboard</a>
+                    <a href="#" onclick="auth.logout(); return false;">Logout</a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container" style="max-width: 600px;">
+        <div id="profile-content">
+            <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 40px;">
+                <div class="avatar avatar-lg" id="avatar"></div>
+                <div>
+                    <h1 id="username" style="margin-bottom: 5px;"></h1>
+                    <p class="text-muted" id="email"></p>
+                    <span class="badge" id="role-badge"></span>
+                </div>
+            </div>
+
+            <form id="profile-form" onsubmit="handleUpdateProfile(event)">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name">
+                </div>
+
+                <div class="form-group">
+                    <label for="bio">Bio</label>
+                    <textarea id="bio" name="bio" style="min-height: 100px;"></textarea>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <button type="button" onclick="showChangePasswordModal()" class="btn btn-secondary">Change Password</button>
+                </div>
+            </form>
+
+            <!-- My Posts -->
+            <h2 style="margin-top: 50px; margin-bottom: 20px;">My Posts</h2>
+            <div id="posts-container" class="grid grid-2"></div>
+        </div>
+    </main>
+
+    <!-- Change Password Modal -->
+    <div id="password-modal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-header">Change Password</h2>
+            <form onsubmit="handleChangePassword(event)">
+                <div class="form-group">
+                    <label for="current-password">Current Password</label>
+                    <input type="password" id="current-password" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="new-password">New Password</label>
+                    <input type="password" id="new-password" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm-password">Confirm Password</label>
+                    <input type="password" id="confirm-password" required>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closePasswordModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/pages/profile.js"></script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Post - Insight-Ink</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <a href="index.html" class="logo">Insight-Ink</a>
+            <ul class="nav-links">
+                <li id="user-nav" style="display: none;" class="flex items-center gap-10">
+                    <a href="inbox.html">Inbox</a>
+                    <a href="profile.html">Profile</a>
+                    <a href="#" onclick="auth.logout(); return false;">Logout</a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <form id="edit-form" onsubmit="handleUpdate(event)">
+            <div style="display: flex; gap: 10px; margin-bottom: 20px; justify-content: flex-end;">
+                <a href="#" id="cancel-btn" class="btn btn-secondary">Cancel</a>
+                <button type="button" id="toggle-preview" class="btn btn-secondary">Preview</button>
+                <button type="submit" class="btn btn-primary">Update</button>
+            </div>
+
+            <input type="text" name="title" class="input-title" placeholder="Post Title" required style="font-size: 2rem; font-weight: 700; border: none; padding: 20px 0; background: transparent; border-bottom: 1px solid var(--border-color);">
+            
+            <input type="text" name="excerpt" class="input-excerpt" placeholder="Short excerpt (optional)" maxlength="160" style="font-size: 1rem; border: none; padding: 10px 0; background: transparent;">
+
+            <!-- Editor Toolbar -->
+            <div class="toolbar">
+                <div class="toolbar-group">
+                    <button type="button" class="toolbar-btn" id="btn-bold" title="Bold (Ctrl+B)"><strong>B</strong></button>
+                    <button type="button" class="toolbar-btn" id="btn-italic" title="Italic (Ctrl+I)"><em>I</em></button>
+                    <button type="button" class="toolbar-btn" id="btn-underline" title="Underline (Ctrl+U)"><u>U</u></button>
+                    <button type="button" class="toolbar-btn" id="btn-strikethrough" title="Strikethrough">S</button>
+                </div>
+                <div class="toolbar-group">
+                    <button type="button" class="toolbar-btn" id="btn-h1" title="Heading 1">H1</button>
+                    <button type="button" class="toolbar-btn" id="btn-h2" title="Heading 2">H2</button>
+                    <button type="button" class="toolbar-btn" id="btn-h3" title="Heading 3">H3</button>
+                </div>
+                <div class="toolbar-group">
+                    <button type="button" class="toolbar-btn" id="btn-list" title="Bullet List">• List</button>
+                    <button type="button" class="toolbar-btn" id="btn-olist" title="Ordered List">1. List</button>
+                    <button type="button" class="toolbar-btn" id="btn-quote" title="Quote">> Quote</button>
+                    <button type="button" class="toolbar-btn" id="btn-code" title="Code Block">Code</button>
+                </div>
+                <div class="toolbar-group">
+                    <button type="button" class="toolbar-btn" id="btn-link" title="Insert Link">Link</button>
+                    <button type="button" class="toolbar-btn" id="btn-image" title="Insert Image">Image</button>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 20px; min-height: 500px;">
+                <textarea name="content" id="markdown-input" placeholder="Write your post in Markdown..." required style="flex: 1; font-family: 'Courier New', monospace; font-size: 1rem; border: 1px solid var(--border-color); padding: 10px;"></textarea>
+                <div id="markdown-preview" style="flex: 1; display: none; border-left: 2px solid var(--accent-color); padding: 10px; overflow-y: auto; font-family: var(--font-serif);"></div>
+            </div>
+        </form>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="js/pages/edit.js"></script>
+</body>
+</html>

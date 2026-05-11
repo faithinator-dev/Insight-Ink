@@ -10,4 +10,5 @@ const recordActivity = async (details) => {
 
 module.exports = {
     recordActivity,
+    
 };

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inbox - Insight-Ink</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <a href="index.html" class="logo">Insight-Ink</a>
+            <ul class="nav-links">
+                <li id="user-nav" style="display: none;" class="flex items-center gap-10">
+                    <a href="write.html" class="btn btn-primary">Write</a>
+                    <a href="profile.html">Profile</a>
+                    <a href="#" onclick="auth.logout(); return false;">Logout</a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container" style="max-width: 700px;">
+        <h1 style="margin-bottom: 10px;">Inbox</h1>
+        <p class="text-muted" style="margin-bottom: 30px;">
+            You have <strong id="unread-count">0</strong> unread notification(s)
+        </p>
+
+        <div id="loading" style="display: none; text-align: center; padding: 40px;">
+            <div class="loader"></div>
+        </div>
+
+        <div id="notifications-container"></div>
+
+        <div id="empty-state" style="display: none; text-align: center; padding: 60px 20px;">
+            <h2>No notifications</h2>
+            <p class="text-muted">You're all caught up!</p>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/pages/inbox.js"></script>
+</body>
+</html>

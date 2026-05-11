@@ -4,69 +4,109 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Insight-Ink</title>
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #6366f1;
+            --accent-dark: #4f46e5;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .serif { font-family: 'Merriweather', serif; }
+    </style>
 </head>
-<body>
-    <nav class="navbar">
-        <div class="container nav-container">
-            <div class="nav-left">
-                <a href="/" class="logo">Insight-Ink</a>
-                <div class="search-bar">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search">
+<body class="bg-white text-slate-900">
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo & Search -->
+                <div class="flex items-center gap-8 flex-1">
+                    <a href="/" class="font-bold text-xl text-indigo-600 hover:text-indigo-700 transition">
+                        <i class="fas fa-feather mr-2"></i>Insight-Ink
+                    </a>
                 </div>
-            </div>
-            <div class="nav-right">
-                <% if (user) { %>
-                    <a href="/write" class="write-link"><i class="far fa-edit"></i> Write</a>
-                    <a href="/inbox" class="btn-icon" aria-label="Inbox"><i class="far fa-bell"></i></a>
-                    <div class="profile-group" id="profile-group">
-                        <button type="button" class="profile-trigger" id="profile-trigger" aria-haspopup="true" aria-expanded="false">
-                            <div class="profile-circle"><%= (user && user.name) ? user.name.charAt(0).toUpperCase() : 'U' %></div>
-                            <span class="profile-trigger-label"><%= user.name %></span>
-                            <i class="fas fa-chevron-down profile-chevron"></i>
-                        </button>
-                        <div class="profile-dropdown hidden" id="profile-dropdown">
-                            <a href="/profile" class="profile-dropdown-link">View profile</a>
-                            <a href="/profile" class="profile-dropdown-link">Edit profile</a>
-                            <a href="/inbox" class="profile-dropdown-link">Inbox</a>
-                            <% if (user.role === 'admin' || user.role === 'superadmin') { %>
-                                <a href="/super-admin" class="profile-dropdown-link">Super admin portal</a>
+
+                <!-- Right Side -->
+                <div class="flex items-center gap-4">
+                    <% if (user) { %>
+                        <!-- Write Button -->
+                        <a href="/write" class="hidden sm:flex items-center gap-2 px-4 py-2 text-indigo-600 hover:text-indigo-700 font-medium transition">
+                            <i class="fas fa-pen-fancy"></i> Write
+                        </a>
+                        
+                        <!-- Inbox with Badge -->
+                        <a href="/inbox" class="relative p-2 text-slate-600 hover:text-slate-900 transition group" title="Inbox">
+                            <i class="fas fa-bell text-lg"></i>
+                            <% if (unreadNotifications > 0) { %>
+                                <span class="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                                    <%= unreadNotifications > 9 ? '9+' : unreadNotifications %>
+                                </span>
                             <% } %>
-                            <a href="/logout" class="profile-dropdown-link danger">Logout</a>
+                        </a>
+
+                        <!-- Profile Dropdown -->
+                        <div class="relative group">
+                            <button class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 transition" id="profile-trigger">
+                                <div class="w-8 h-8 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-full text-white font-bold text-sm flex items-center justify-center">
+                                    <%= (user.name) ? user.name.charAt(0).toUpperCase() : 'U' %>
+                                </div>
+                                <span class="hidden sm:inline text-sm font-medium max-w-[120px] truncate"><%= user.name %></span>
+                                <i class="fas fa-chevron-down text-xs text-slate-400"></i>
+                            </button>
+
+                            <!-- Dropdown Menu -->
+                            <div class="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-slate-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200" id="profile-dropdown">
+                                <a href="/profile" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 first:rounded-t-lg">
+                                    <i class="fas fa-user mr-2 text-indigo-600"></i> Profile
+                                </a>
+                                <a href="/inbox" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <i class="fas fa-inbox mr-2 text-indigo-600"></i> Inbox
+                                </a>
+                                <% if (user.role === 'admin' || user.role === 'superadmin') { %>
+                                    <div class="border-t border-slate-100"></div>
+                                    <a href="/super-admin" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                        <i class="fas fa-shield mr-2 text-amber-600"></i> Admin Panel
+                                    </a>
+                                <% } %>
+                                <div class="border-t border-slate-100"></div>
+                                <a href="/logout" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 last:rounded-b-lg">
+                                    <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                                </a>
+                            </div>
                         </div>
-                    </div>
-                <% } else { %>
-                    <a href="/login" class="nav-link">Sign in</a>
-                    <a href="/register" class="btn-primary">Get started</a>
-                <% } %>
+                    <% } else { %>
+                        <a href="/login" class="px-4 py-2 text-slate-700 hover:text-slate-900 font-medium transition">
+                            Sign in
+                        </a>
+                        <a href="/register" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition">
+                            Get started
+                        </a>
+                    <% } %>
+                </div>
             </div>
         </div>
     </nav>
-    <main class="container">
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
 <% if (user) { %>
 <script>
 const profileTrigger = document.getElementById('profile-trigger');
 const profileDropdown = document.getElementById('profile-dropdown');
 
-if (profileTrigger && profileDropdown) {
-    const closeProfileDropdown = () => {
-        profileDropdown.classList.add('hidden');
-        profileTrigger.setAttribute('aria-expanded', 'false');
-    };
-
-    profileTrigger.addEventListener('click', (event) => {
-        event.stopPropagation();
-        const isHidden = profileDropdown.classList.toggle('hidden');
-        profileTrigger.setAttribute('aria-expanded', String(!isHidden));
+if (profileTrigger) {
+    profileTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        profileDropdown.classList.toggle('opacity-0');
+        profileDropdown.classList.toggle('invisible');
     });
 
-    document.addEventListener('click', (event) => {
-        if (!profileDropdown.contains(event.target) && !profileTrigger.contains(event.target)) {
-            closeProfileDropdown();
+    document.addEventListener('click', (e) => {
+        if (!profileDropdown.contains(e.target) && !profileTrigger.contains(e.target)) {
+            profileDropdown.classList.add('opacity-0', 'invisible');
         }
     });
 }

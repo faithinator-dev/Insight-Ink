@@ -33,6 +33,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Global User Middleware for EJS
 app.use(async (req, res, next) => {
     res.locals.user = null;
+    res.locals.unreadNotifications = 0;
     const token = req.cookies.token;
     
     if (token && token !== 'none') {
@@ -41,6 +42,18 @@ app.use(async (req, res, next) => {
             const foundUser = await User.findById(decoded.id);
             if (foundUser) {
                 res.locals.user = foundUser;
+                
+                // Load unread notification count
+                try {
+                    const Notification = require('./models/Notification');
+                    const unreadCount = await Notification.countDocuments({ 
+                        userId: foundUser._id, 
+                        read: false 
+                    });
+                    res.locals.unreadNotifications = unreadCount;
+                } catch (notifErr) {
+                    console.error('Error loading notification count:', notifErr);
+                }
             }
         } catch (err) {
             // Token invalid or expired
