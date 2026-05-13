@@ -1,68 +1,111 @@
 <%- include('partials/header') %>
 
-<div class="posts-grid">
-    <% if (posts.length > 0) { %>
+<!-- Hero Section -->
+<% if (!user) { %>
+<div class="mb-12 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl border border-indigo-100 p-8 sm:p-12">
+    <div class="max-w-2xl">
+        <h1 class="text-4xl sm:text-5xl font-bold text-slate-900 mb-4">
+            Discover stories, thinking, and expertise
+        </h1>
+        <p class="text-lg text-slate-600 mb-6">
+            Explore insightful articles from writers and thinkers around the world.
+        </p>
+        <a href="/register" class="inline-block px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition">
+            Start exploring
+        </a>
+    </div>
+</div>
+<% } %>
+
+<!-- Posts Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <% if (posts && posts.length > 0) { %>
         <% posts.forEach(post => { %>
             <% const isLiked = user && post.likes && post.likes.some(likeId => likeId.toString() === user._id.toString()); %>
             <% const likeCount = post.likes?.length || 0; %>
             <% const commentCount = post.comments?.length || 0; %>
-            <article class="post-card">
-                <div class="post-card-image">
-                    <div class="placeholder-img"></div>
-                </div>
-                <div class="post-card-content">
-                    <div class="post-meta-top">
-                        <span class="author-name"><%= post.author %></span>
-                        <span class="post-date"><%= post.createdAt.toDateString() %></span>
+            
+            <!-- Post Card -->
+            <article class="group bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg hover:border-slate-300 transition-all duration-300">
+                <!-- Post Header -->
+                <div class="p-5 border-b border-slate-100">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center gap-3 flex-1">
+                            <div class="w-10 h-10 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-full text-white text-sm font-bold flex items-center justify-center">
+                                <%= post.author.charAt(0).toUpperCase() %>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-slate-900 truncate"><%= post.author %></p>
+                                <p class="text-xs text-slate-500"><%= new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %></p>
+                            </div>
+                        </div>
+                        
+                        <!-- Edit/Delete Actions -->
                         <% if (user && post.authorId && (user._id.toString() === post.authorId.toString() || user.role === 'admin' || user.role === 'superadmin')) { %>
-                            <div class="card-author-actions">
-                                <a href="/edit/<%= post._id %>" class="mini-action-link">Edit</a>
-                                <button onclick="deletePost('<%= post._id %>', <%= JSON.stringify(user._id.toString() === post.authorId.toString()) %>, '<%= user.role %>')" class="mini-action-btn-text">Delete</button>
+                            <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <a href="/edit/<%= post._id %>" class="p-2 rounded text-slate-500 hover:bg-slate-100 hover:text-indigo-600 transition" title="Edit">
+                                    <i class="fas fa-edit text-sm"></i>
+                                </a>
+                                <button onclick="deletePost('<%= post._id %>', <%= JSON.stringify(user._id.toString() === post.authorId.toString()) %>, '<%= user.role %>')" 
+                                    class="p-2 rounded text-slate-500 hover:bg-red-50 hover:text-red-600 transition" title="Delete">
+                                    <i class="fas fa-trash text-sm"></i>
+                                </button>
                             </div>
                         <% } %>
                     </div>
-                    <h2 class="post-title">
+                </div>
+
+                <!-- Post Content -->
+                <div class="p-5">
+                    <h2 class="text-lg font-bold text-slate-900 mb-2 line-clamp-2 group-hover:text-indigo-600 transition">
                         <a href="/post/<%= post._id %>"><%= post.title %></a>
                     </h2>
-                    <p class="post-excerpt">
+                    <p class="text-sm text-slate-600 mb-4 line-clamp-2">
                         <%= post.excerpt || post.content.substring(0, 150) + '...' %>
                     </p>
-                    <div class="post-card-footer">
-                        <div class="reactions">
-                            <% if (user) { %>
-                                <button type="button" class="reaction reaction-like" data-post-id="<%= post._id %>" data-liked="<%= isLiked ? 'true' : 'false' %>" data-count="<%= likeCount %>">
-                                    <i class="<%= isLiked ? 'fas' : 'far' %> fa-heart"></i> <span class="reaction-count"><%= likeCount %></span>
-                                </button>
-                            <% } else { %>
-                                <a class="reaction reaction-link" href="/login" title="Sign in to like posts">
-                                    <i class="far fa-heart"></i> <span class="reaction-count"><%= likeCount %></span>
-                                </a>
-                            <% } %>
-                            <a class="reaction reaction-link" href="/post/<%= post._id %>#comments" title="Jump to comments">
-                                <i class="far fa-comment"></i> <span class="reaction-count"><%= commentCount %></span>
+                </div>
+
+                <!-- Post Footer -->
+                <div class="px-5 py-4 bg-slate-50 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <% if (user) { %>
+                            <button type="button" class="reaction-like flex items-center gap-1 text-xs font-medium text-slate-600 hover:text-red-600 transition"
+                                data-post-id="<%= post._id %>" data-liked="<%= isLiked ? 'true' : 'false' %>">
+                                <i class="<%= isLiked ? 'fas' : 'far' %> fa-heart"></i>
+                                <span class="reaction-count"><%= likeCount %></span>
+                            </button>
+                        <% } else { %>
+                            <a href="/login" class="flex items-center gap-1 text-xs font-medium text-slate-600 hover:text-red-600 transition">
+                                <i class="far fa-heart"></i>
+                                <span><%= likeCount %></span>
                             </a>
-                        </div>
-                        <span class="read-time"><%= post.readTime || 5 %> min read</span>
+                        <% } %>
+                        
+                        <a href="/post/<%= post._id %>#comments" class="flex items-center gap-1 text-xs font-medium text-slate-600 hover:text-blue-600 transition">
+                            <i class="far fa-comment"></i>
+                            <span><%= commentCount %></span>
+                        </a>
                     </div>
+                    <span class="text-xs text-slate-500"><%= post.readTime || 5 %> min</span>
                 </div>
             </article>
         <% }) %>
     <% } else { %>
-        <p>No posts found. Start writing!</p>
+        <!-- Empty State -->
+        <div class="col-span-full py-16 text-center">
+            <div class="w-16 h-16 bg-slate-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                <i class="fas fa-feather text-2xl text-slate-400"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-slate-900 mb-2">No posts yet</h3>
+            <p class="text-slate-600 mb-4">Be the first to share your thoughts</p>
+            <% if (user) { %>
+                <a href="/write" class="inline-block px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition text-sm">
+                    Write your first post
+                </a>
+            <% } %>
+        </div>
     <% } %>
 </div>
-
-<%- include('partials/footer') %>
-
-<style>
-.post-meta-top { display: flex; align-items: center; gap: 10px; }
-.card-author-actions { margin-left: auto; display: flex; gap: 8px; font-size: 0.8rem; }
-.mini-action-link, .mini-action-btn-text { color: var(--text-muted); text-decoration: none; border: none; background: none; cursor: pointer; padding: 0; }
-.mini-action-link:hover, .mini-action-btn-text:hover { color: var(--accent-color); }
-.reaction { display: inline-flex; align-items: center; gap: 5px; color: var(--text-muted); text-decoration: none; border: none; background: none; padding: 0; font: inherit; cursor: pointer; }
-.reaction:hover { color: var(--accent-color); }
-.reaction[disabled] { cursor: default; }
-</style>
 
 <script>
 document.querySelectorAll('.reaction-like').forEach((button) => {
@@ -213,3 +256,5 @@ async function deletePost(id, isOwner, role) {
     }
 }
 </script>
+
+<%- include('partials/footer') %>

@@ -1,80 +1,72 @@
 <%- include('partials/header') %>
 
-<div class="inbox-page">
-    <section class="inbox-hero">
-        <div>
-            <p class="eyebrow">Inbox</p>
-            <h1>Your messages</h1>
-            <p class="inbox-intro">Admin notices, moderation updates, and system messages arrive here.</p>
+<div class="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 mb-8">
+            <div>
+                <h1 class="text-4xl sm:text-5xl font-bold text-slate-900 mb-3">Inbox</h1>
+                <p class="text-lg text-slate-600">Notifications, likes, and interactions</p>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm min-w-max">
+                <p class="text-sm font-medium text-slate-500 mb-2">Unread</p>
+                <p class="text-3xl font-bold text-indigo-600"><%= (notifications && notifications.filter(n => !n.read).length) || 0 %></p>
+            </div>
         </div>
-        <div class="inbox-badge">
-            <span>Unread</span>
-            <strong><%= unreadCount %></strong>
-        </div>
-    </section>
 
-    <section class="inbox-card">
+        <!-- Notifications List -->
         <% if (notifications && notifications.length > 0) { %>
-            <div class="inbox-list">
+            <div class="space-y-3">
                 <% notifications.forEach(notification => { %>
-                    <article class="inbox-item <%= notification.read ? 'read' : 'unread' %>">
-                        <div class="inbox-item-main">
-                            <div class="inbox-item-top">
-                                <strong><%= notification.title %></strong>
-                                <span><%= notification.type.replace(/_/g, ' ') %></span>
+                    <article class="bg-white rounded-xl border <%= notification.read ? 'border-slate-200 opacity-75' : 'border-indigo-200 bg-gradient-to-r from-white to-indigo-50' %> p-6 hover:shadow-md transition-shadow duration-200">
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <h3 class="font-semibold text-slate-900 text-lg"><%= notification.title %></h3>
+                                    <% if (!notification.read) { %>
+                                        <span class="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-medium rounded-full">New</span>
+                                    <% } %>
+                                </div>
+                                <p class="text-slate-700 mb-3 leading-relaxed"><%= notification.message %></p>
+                                <p class="text-sm text-slate-500">
+                                    <i class="fas fa-clock mr-2"></i><%= new Date(notification.createdAt).toLocaleString() %>
+                                </p>
                             </div>
-                            <p><%= notification.message %></p>
-                            <small><%= new Date(notification.createdAt).toLocaleString() %></small>
-                        </div>
-                        <div class="inbox-item-actions">
-                            <button type="button" class="mark-read-btn" data-id="<%= notification._id %>" <%= notification.read ? 'disabled' : '' %>><%= notification.read ? 'Read' : 'Mark read' %></button>
+                            <% if (!notification.read) { %>
+                                <button type="button" class="mark-read-btn px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors duration-200 whitespace-nowrap flex-shrink-0" data-id="<%= notification._id %>">
+                                    Mark read
+                                </button>
+                            <% } else { %>
+                                <span class="px-4 py-2 bg-slate-100 text-slate-600 font-medium rounded-lg flex-shrink-0">Read</span>
+                            <% } %>
                         </div>
                     </article>
                 <% }) %>
             </div>
         <% } else { %>
-            <p class="empty-inbox">No messages yet.</p>
+            <div class="text-center py-16">
+                <div class="mb-4">
+                    <i class="fas fa-inbox text-5xl text-slate-300"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-slate-600 mb-2">No notifications yet</h3>
+                <p class="text-slate-500">When someone likes or comments on your posts, you'll see it here.</p>
+            </div>
         <% } %>
-    </section>
+    </div>
 </div>
-
-<style>
-.inbox-page { max-width: 980px; margin: 40px auto 60px; }
-.inbox-hero { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; margin-bottom: 24px; }
-.inbox-hero h1 { font-family: var(--font-serif); font-size: clamp(2rem, 4vw, 3.2rem); margin-bottom: 8px; }
-.inbox-intro { color: var(--text-muted); max-width: 620px; }
-.inbox-badge { background: var(--primary-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px 18px; min-width: 140px; text-align: right; }
-.inbox-badge span { display: block; color: var(--text-muted); font-size: 0.8rem; margin-bottom: 4px; }
-.inbox-card { background: var(--primary-bg); border: 1px solid var(--border-color); border-radius: 20px; padding: 20px; box-shadow: 0 10px 24px rgba(0, 0, 0, 0.04); }
-.inbox-list { display: grid; gap: 14px; }
-.inbox-item { border: 1px solid var(--border-color); border-radius: 18px; padding: 16px; display: flex; justify-content: space-between; gap: 16px; }
-.inbox-item.unread { background: rgba(74, 144, 226, 0.07); }
-.inbox-item.read { opacity: 0.82; }
-.inbox-item-top { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
-.inbox-item-top span { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-color); }
-.inbox-item p { color: var(--text-main); line-height: 1.6; white-space: pre-wrap; }
-.inbox-item small { display: inline-block; margin-top: 8px; color: var(--text-muted); }
-.inbox-item-actions { display: flex; align-items: center; }
-.empty-inbox { color: var(--text-muted); }
-@media (max-width: 720px) {
-    .inbox-hero { flex-direction: column; }
-    .inbox-badge { text-align: left; width: 100%; }
-    .inbox-item { flex-direction: column; }
-    .inbox-item-actions .mark-read-btn { width: 100%; }
-}
-</style>
 
 <script>
 document.querySelectorAll('.mark-read-btn').forEach((button) => {
     button.addEventListener('click', async () => {
+        const notificationId = button.dataset.id;
         try {
-            const response = await fetch(`/api/notifications/${button.dataset.id}/read`, { method: 'PUT' });
+            const response = await fetch(`/api/notifications/${notificationId}/read`, { method: 'PUT' });
             const data = await response.json();
             if (response.ok) {
-                button.disabled = true;
-                button.textContent = 'Read';
-                button.closest('.inbox-item').classList.remove('unread');
-                button.closest('.inbox-item').classList.add('read');
+                const article = button.closest('article');
+                article.classList.remove('border-indigo-200', 'bg-gradient-to-r', 'from-white', 'to-indigo-50');
+                article.classList.add('border-slate-200', 'opacity-75');
+                button.parentElement.innerHTML = '<span class="px-4 py-2 bg-slate-100 text-slate-600 font-medium rounded-lg">Read</span>';
             } else {
                 alert(data.message || 'Could not mark message read.');
             }

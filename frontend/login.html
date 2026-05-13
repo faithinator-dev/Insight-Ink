@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Insight-Ink</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <a href="index.html" class="logo">Insight-Ink</a>
+        </nav>
+    </header>
+
+    <main class="container" style="max-width: 400px; margin-top: 60px;">
+        <h1 style="text-align: center; margin-bottom: 30px;">Login</h1>
+
+        <form id="login-form" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+        </form>
+
+        <p style="text-align: center; margin-top: 20px;">
+            Don't have an account? <a href="register.html">Register here</a>
+        </p>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = $('#email').value;
+            const password = $('#password').value;
+            
+            try {
+                await auth.login(email, password);
+            } catch (err) {
+                showError(err.message);
+            }
+        }
+    </script>
+</body>
+</html>

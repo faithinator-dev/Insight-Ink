@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insight-Ink - Blog Platform</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <header>
+        <nav class="navbar">
+            <a href="index.html" class="logo">Insight-Ink</a>
+            <ul class="nav-links">
+                <li id="auth-nav" style="display: none;">
+                    <a href="login.html" class="btn btn-secondary">Login</a>
+                    <a href="register.html" class="btn btn-primary">Register</a>
+                </li>
+                <li id="user-nav" style="display: none;" class="flex items-center gap-10">
+                    <a href="write.html" class="btn btn-primary">Write</a>
+                    <a href="inbox.html">Inbox</a>
+                    <a href="profile.html">Profile</a>
+                    <div id="admin-nav" style="display: none;">
+                        <a href="admin.html">Dashboard</a>
+                    </div>
+                    <a href="#" onclick="auth.logout(); return false;">Logout</a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <div style="text-align: center; margin-bottom: 40px;">
+            <h1>Latest Posts</h1>
+            <p class="text-muted">Discover stories and insights</p>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading" class="text-center" style="display: none; padding: 40px;">
+            <div class="loader"></div>
+        </div>
+
+        <!-- Posts Grid -->
+        <div id="posts-container" class="grid grid-2"></div>
+
+        <!-- Empty State -->
+        <div id="empty-state" style="display: none; text-align: center; padding: 60px 20px;">
+            <h2>No posts yet</h2>
+            <p class="text-muted">Be the first to share your thoughts</p>
+        </div>
+
+        <!-- Pagination -->
+        <div id="pagination" style="text-align: center; margin-top: 40px; gap: 10px;" class="flex justify-between"></div>
+    </main>
+
+    <!-- Footer -->
+    <footer style="text-align: center; padding: 40px 20px; background: var(--secondary-bg); margin-top: 40px; border-top: 1px solid var(--border-color);">
+        <p>&copy; 2026 Insight-Ink. All rights reserved.</p>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/pages/home.js"></script>
+</body>
+</html>

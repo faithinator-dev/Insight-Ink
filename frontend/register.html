@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Insight-Ink</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <a href="index.html" class="logo">Insight-Ink</a>
+        </nav>
+    </header>
+
+    <main class="container" style="max-width: 400px; margin-top: 60px;">
+        <h1 style="text-align: center; margin-bottom: 30px;">Register</h1>
+
+        <form id="register-form" onsubmit="handleRegister(event)">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="username">Username (optional)</label>
+                <input type="text" id="username" name="username">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password-confirm">Confirm Password</label>
+                <input type="password" id="password-confirm" name="password-confirm" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Register</button>
+        </form>
+
+        <p style="text-align: center; margin-top: 20px;">
+            Already have an account? <a href="login.html">Login here</a>
+        </p>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        async function handleRegister(e) {
+            e.preventDefault();
+            const email = $('#email').value;
+            const username = $('#username').value;
+            const password = $('#password').value;
+            const passwordConfirm = $('#password-confirm').value;
+            
+            if (password !== passwordConfirm) {
+                showError('Passwords do not match');
+                return;
+            }
+            
+            try {
+                await auth.register(email, password, username);
+            } catch (err) {
+                showError(err.message);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Insight-Ink</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <a href="index.html" class="logo">Insight-Ink</a>
+            <ul class="nav-links">
+                <li id="user-nav" style="display: none;" class="flex items-center gap-10">
+                    <a href="write.html" class="btn btn-primary">Write</a>
+                    <a href="inbox.html">Inbox</a>
+                    <a href="profile.html">Profile</a>
+                    <a href="#" onclick="auth.logout(); return false;">Logout</a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container container-lg">
+        <h1 style="margin-bottom: 30px;">Admin Dashboard</h1>
+
+        <!-- Stats -->
+        <div class="grid grid-3" style="margin-bottom: 40px;">
+            <div class="card">
+                <div class="card-title" id="total-users">0</div>
+                <p class="text-muted">Total Users</p>
+            </div>
+            <div class="card">
+                <div class="card-title" id="total-posts">0</div>
+                <p class="text-muted">Total Posts</p>
+            </div>
+            <div class="card">
+                <div class="card-title" id="total-admins">0</div>
+                <p class="text-muted">Total Admins</p>
+            </div>
+        </div>
+
+        <div class="grid grid-2" style="gap: 30px;">
+            <!-- Users Management -->
+            <section>
+                <h2 style="margin-bottom: 20px;">Users</h2>
+                <div id="users-container" class="grid"></div>
+            </section>
+
+            <!-- Mail Composer -->
+            <section>
+                <h2 style="margin-bottom: 20px;">Send Admin Notice</h2>
+                <form onsubmit="handleSendNotice(event)" class="card">
+                    <div class="form-group">
+                        <label for="recipient">Recipient</label>
+                        <select id="recipient" required>
+                            <option value="">-- Select User --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="subject">Subject</label>
+                        <input type="text" id="subject" placeholder="Notification subject" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="message">Message</label>
+                        <textarea id="message" placeholder="Write your message..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Send Notice</button>
+                </form>
+
+                <h2 style="margin-top: 40px; margin-bottom: 20px;">Recent Notices Sent</h2>
+                <div id="notices-container"></div>
+            </section>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/pages/admin.js"></script>
+</body>
+</html>
