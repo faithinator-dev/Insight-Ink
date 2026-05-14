@@ -624,6 +624,7 @@ function cancelReply(commentId) {
     form.classList.add('hidden');
 }
 
+<% if (user) { %>
 async function submitReply(commentId) {
     const form = document.getElementById(`reply-form-${commentId}`);
     const textarea = form.querySelector('.reply-textarea');
@@ -688,6 +689,7 @@ async function submitReply(commentId) {
         alert('Error posting reply');
     }
 }
+<% } %>
 
 async function deleteReply(commentId, replyId) {
     if (!confirm('Delete this reply?')) return;

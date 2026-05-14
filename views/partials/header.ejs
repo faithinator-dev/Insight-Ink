@@ -4,19 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Insight-Ink</title>
-<<<<<<< HEAD
-    <link rel="stylesheet" href="/css/style.css">
-    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@400;700&display=swap" rel="stylesheet">
-</head>
-<body>
-    <header class="navbar">
-        <div class="container nav-container">
-=======
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js"></script>
     <style>
         :root {
             --accent: #6366f1;
@@ -37,7 +28,6 @@
                         <i class="fas fa-feather mr-2"></i>Insight-Ink
                     </a>
                 </div>
->>>>>>> b78696b4e301e7f3ca2c9a9f01c82068daa2d58b
 
                 <!-- Right Side -->
                 <div class="flex items-center gap-4">
@@ -60,7 +50,6 @@
                         <!-- Profile Dropdown -->
                         <div class="relative group">
                             <button class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 transition" id="profile-trigger">
-<<<<<<< HEAD
                                 <% if (user.profilePicture) { %>
                                     <img src="<%= user.profilePicture %>" alt="<%= user.name %>" class="w-8 h-8 rounded-full object-cover" />
                                 <% } else { %>
@@ -68,11 +57,6 @@
                                         <%= (user.name) ? user.name.charAt(0).toUpperCase() : 'U' %>
                                     </div>
                                 <% } %>
-=======
-                                <div class="w-8 h-8 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-full text-white font-bold text-sm flex items-center justify-center">
-                                    <%= (user.name) ? user.name.charAt(0).toUpperCase() : 'U' %>
-                                </div>
->>>>>>> b78696b4e301e7f3ca2c9a9f01c82068daa2d58b
                                 <span class="hidden sm:inline text-sm font-medium max-w-[120px] truncate"><%= user.name %></span>
                                 <i class="fas fa-chevron-down text-xs text-slate-400"></i>
                             </button>
