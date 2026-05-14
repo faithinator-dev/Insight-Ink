@@ -27,6 +27,7 @@
             
             <!-- Post Card -->
             <article class="group bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg hover:border-slate-300 transition-all duration-300">
+<<<<<<< HEAD
                 <!-- Featured Image -->
                 <% if (post.imageData) { %>
                     <div class="h-40 bg-gradient-to-br from-slate-200 to-slate-300 overflow-hidden">
@@ -34,10 +35,13 @@
                     </div>
                 <% } %>
                 
+=======
+>>>>>>> b78696b4e301e7f3ca2c9a9f01c82068daa2d58b
                 <!-- Post Header -->
                 <div class="p-5 border-b border-slate-100">
                     <div class="flex items-start justify-between mb-3">
                         <div class="flex items-center gap-3 flex-1">
+<<<<<<< HEAD
                             <% if (post.authorId && post.authorId.profilePicture) { %>
                                 <img src="<%= post.authorId.profilePicture %>" alt="<%= post.author %>" class="w-10 h-10 rounded-full object-cover">
                             <% } else { %>
@@ -45,6 +49,11 @@
                                     <%= post.author.charAt(0).toUpperCase() %>
                                 </div>
                             <% } %>
+=======
+                            <div class="w-10 h-10 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-full text-white text-sm font-bold flex items-center justify-center">
+                                <%= post.author.charAt(0).toUpperCase() %>
+                            </div>
+>>>>>>> b78696b4e301e7f3ca2c9a9f01c82068daa2d58b
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-medium text-slate-900 truncate"><%= post.author %></p>
                                 <p class="text-xs text-slate-500"><%= new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %></p>

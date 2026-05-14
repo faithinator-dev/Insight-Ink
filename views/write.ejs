@@ -7,6 +7,47 @@
             <h1 class="text-4xl sm:text-5xl font-bold text-slate-900 mb-2">Create New Post</h1>
             <p class="text-lg text-slate-600">Share your thoughts with the world</p>
         </div>
+<<<<<<< HEAD
+=======
+        
+        <input type="text" name="title" class="input-title" placeholder="Title" required>
+        <input type="text" name="excerpt" class="input-excerpt" placeholder="Short excerpt (optional)" maxlength="160">
+        
+        <div class="editor-toolbar">
+            <div class="toolbar-group">
+                <button type="button" class="toolbar-btn" id="btn-bold" title="Bold (Ctrl+B)"><strong>B</strong></button>
+                <button type="button" class="toolbar-btn" id="btn-italic" title="Italic (Ctrl+I)"><em>I</em></button>
+                <button type="button" class="toolbar-btn" id="btn-underline" title="Underline (Ctrl+U)"><u>U</u></button>
+                <button type="button" class="toolbar-btn" id="btn-strikethrough" title="Strikethrough">S</button>
+            </div>
+            <div class="toolbar-group">
+                <button type="button" class="toolbar-btn" id="btn-h1" title="Heading 1">H1</button>
+                <button type="button" class="toolbar-btn" id="btn-h2" title="Heading 2">H2</button>
+                <button type="button" class="toolbar-btn" id="btn-h3" title="Heading 3">H3</button>
+            </div>
+            <div class="toolbar-group">
+                <button type="button" class="toolbar-btn" id="btn-list" title="Bullet List">• List</button>
+                <button type="button" class="toolbar-btn" id="btn-olist" title="Ordered List">1. List</button>
+                <button type="button" class="toolbar-btn" id="btn-quote" title="Quote">> Quote</button>
+                <button type="button" class="toolbar-btn" id="btn-code" title="Code Block">Code</button>
+            </div>
+            <div class="toolbar-group">
+                <button type="button" class="toolbar-btn" id="btn-link" title="Insert Link">Link</button>
+                <button type="button" class="toolbar-btn" id="btn-image" title="Insert Image">Image</button>
+            </div>
+        </div>
+
+        <div class="editor-wrapper">
+            <div class="editor-pane">
+                <textarea name="content" id="markdown-input" class="input-content" placeholder="Write in Markdown...&#10;💡 Tip: Use toolbar buttons or Ctrl+B, Ctrl+I, Ctrl+U, Shift+Enter for new line" required></textarea>
+            </div>
+            <div class="preview-pane hidden" id="markdown-preview">
+                <!-- Markdown content will be rendered here -->
+            </div>
+        </div>
+    </form>
+</div>
+>>>>>>> b78696b4e301e7f3ca2c9a9f01c82068daa2d58b
 
         <form id="write-form" class="space-y-6">
             <!-- Title -->
@@ -106,6 +147,7 @@
     </div>
 </div>
 
+<<<<<<< HEAD
 <script>
 // Initialize TinyMCE
 tinymce.init({
@@ -127,6 +169,343 @@ tinymce.init({
             font-size: 16px;
             line-height: 1.6;
             color: #1e293b;
+=======
+<!-- Marked Library for Markdown Parsing -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<style>
+.write-container { max-width: 900px; margin: 40px auto; }
+.write-form { display: flex; flex-direction: column; gap: 15px; }
+.write-actions-top { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 20px; }
+
+/* Toolbar Styles */
+.editor-toolbar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 12px;
+    background: var(--secondary-bg);
+    border-radius: 8px 8px 0 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.toolbar-group {
+    display: flex;
+    gap: 4px;
+    padding: 0 8px;
+    border-right: 1px solid var(--border-color);
+}
+
+.toolbar-group:last-child {
+    border-right: none;
+}
+
+.toolbar-btn {
+    background: var(--primary-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    min-width: 40px;
+}
+
+.toolbar-btn:hover {
+    background: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
+
+.toolbar-btn:active {
+    transform: scale(0.95);
+}
+
+/* Editor wrapper */
+.editor-wrapper { display: flex; gap: 20px; min-height: 500px; }
+.editor-pane, .preview-pane { flex: 1; width: 100%; }
+.hidden { display: none; }
+
+.input-title { font-size: 2.5rem; font-weight: 700; border: none; outline: none; width: 100%; background: transparent; color: var(--text-main); }
+.input-excerpt { font-size: 1.2rem; border: none; outline: none; width: 100%; background: transparent; color: var(--text-muted); margin-bottom: 10px; }
+
+.input-content { 
+    font-size: 1.1rem; border: 1px solid var(--border-color); outline: none; font-family: 'Courier New', monospace; 
+    width: 100%; height: 100%; min-height: 450px; resize: none; background: var(--primary-bg); 
+    color: var(--text-main); line-height: 1.6; padding: 10px;
+    border-radius: 0 0 8px 0;
+    transition: border-color 0.2s;
+}
+
+.input-content:focus {
+    border-color: var(--accent-color);
+}
+
+.preview-pane { 
+    font-family: var(--font-serif); font-size: 1.2rem; line-height: 1.6; 
+    padding: 10px; border-left: 2px solid var(--accent-color);
+    overflow-y: auto;
+}
+
+.mobile-preview-open .editor-pane {
+    display: none;
+}
+
+.mobile-preview-open .preview-pane {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: block;
+    width: 100vw;
+    height: 100vh;
+    max-width: 100vw;
+    padding: 64px 16px 24px;
+    border-left: none;
+    background: var(--primary-bg);
+    overflow-y: auto;
+}
+
+.mobile-preview-open .write-actions-top {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 2001;
+    background: var(--primary-bg);
+    width: auto;
+    padding: 12px 16px;
+    margin-bottom: 0;
+}
+
+.mobile-preview-open .input-title,
+.mobile-preview-open .input-excerpt,
+.mobile-preview-open .btn-publish {
+    display: none;
+}
+
+.mobile-preview-open {
+    overflow: hidden;
+}
+
+.preview-pane h1, .preview-pane h2 { margin-top: 20px; }
+.preview-pane code { background: var(--secondary-bg); padding: 2px 5px; border-radius: 4px; }
+
+.btn-publish { background: var(--accent-color); color: white; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; }
+.btn-secondary { background: var(--secondary-bg); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 20px; border-radius: 20px; cursor: pointer; }
+
+/* Floating Help Button */
+.floating-help-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--text-main);
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    z-index: 1001;
+    transition: transform 0.2s;
+}
+.floating-help-btn:hover { transform: scale(1.1); }
+
+/* Help Modal */
+.help-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1002;
+}
+.help-modal.hidden { display: none; }
+.help-modal-content {
+    background: var(--primary-bg);
+    padding: 30px;
+    border-radius: 12px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+.help-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+.help-modal-header h3 { font-family: var(--font-sans); }
+#close-help {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    line-height: 1;
+}
+.help-modal-body table { width: 100%; border-collapse: collapse; }
+.help-modal-body th, .help-modal-body td { 
+    text-align: left; padding: 12px; border-bottom: 1px solid var(--border-color); 
+}
+.help-modal-body code { background: var(--secondary-bg); padding: 4px 8px; border-radius: 4px; font-family: monospace; }
+</style>
+
+<script>
+const input = document.getElementById('markdown-input');
+const preview = document.getElementById('markdown-preview');
+const toggleBtn = document.getElementById('toggle-preview');
+const helpBtn = document.getElementById('markdown-help-btn');
+const helpModal = document.getElementById('help-modal');
+const closeHelp = document.getElementById('close-help');
+
+// Help Modal Logic
+helpBtn.addEventListener('click', () => helpModal.classList.remove('hidden'));
+closeHelp.addEventListener('click', () => helpModal.classList.add('hidden'));
+window.addEventListener('click', (e) => {
+    if (e.target === helpModal) helpModal.classList.add('hidden');
+});
+
+// Real-time preview update
+input.addEventListener('input', () => {
+    preview.innerHTML = marked.parse(input.value);
+});
+
+// Helper function to insert formatted text at cursor
+function insertMarkdown(before, after = '') {
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+    const selectedText = input.value.substring(start, end) || 'text';
+    const beforeSelection = input.value.substring(0, start);
+    const afterSelection = input.value.substring(end);
+    
+    input.value = beforeSelection + before + selectedText + after + afterSelection;
+    input.focus();
+    
+    // Update preview
+    preview.innerHTML = marked.parse(input.value);
+    
+    // Trigger input event for form tracking
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+// Toolbar Button Handlers
+document.getElementById('btn-bold').addEventListener('click', (e) => {
+    e.preventDefault();
+    insertMarkdown('**', '**');
+});
+
+document.getElementById('btn-italic').addEventListener('click', (e) => {
+    e.preventDefault();
+    insertMarkdown('*', '*');
+});
+
+document.getElementById('btn-underline').addEventListener('click', (e) => {
+    e.preventDefault();
+    insertMarkdown('<u>', '</u>');
+});
+
+document.getElementById('btn-strikethrough').addEventListener('click', (e) => {
+    e.preventDefault();
+    insertMarkdown('~~', '~~');
+});
+
+document.getElementById('btn-h1').addEventListener('click', (e) => {
+    e.preventDefault();
+    insertMarkdown('# ', '');
+});
+
+document.getElementById('btn-h2').addEventListener('click', (e) => {
+    e.preventDefault();
+    insertMarkdown('## ', '');
+});
+
+document.getElementById('btn-h3').addEventListener('click', (e) => {
+    e.preventDefault();
+    insertMarkdown('### ', '');
+});
+
+document.getElementById('btn-list').addEventListener('click', (e) => {
+    e.preventDefault();
+    insertMarkdown('- ', '');
+});
+
+document.getElementById('btn-olist').addEventListener('click', (e) => {
+    e.preventDefault();
+    insertMarkdown('1. ', '');
+});
+
+document.getElementById('btn-quote').addEventListener('click', (e) => {
+    e.preventDefault();
+    insertMarkdown('> ', '');
+});
+
+document.getElementById('btn-code').addEventListener('click', (e) => {
+    e.preventDefault();
+    insertMarkdown('```\n', '\n```');
+});
+
+document.getElementById('btn-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    insertMarkdown('[Link text](', ')');
+});
+
+document.getElementById('btn-image').addEventListener('click', (e) => {
+    e.preventDefault();
+    insertMarkdown('![Alt text](', ')');
+});
+
+// Keyboard Shortcuts
+input.addEventListener('keydown', (e) => {
+    // Ctrl+B for Bold
+    if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+        e.preventDefault();
+        insertMarkdown('**', '**');
+    }
+    // Ctrl+I for Italic
+    else if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+        e.preventDefault();
+        insertMarkdown('*', '*');
+    }
+    // Ctrl+U for Underline
+    else if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
+        e.preventDefault();
+        insertMarkdown('<u>', '</u>');
+    }
+    // Shift+Enter for new line (soft break)
+    else if (e.shiftKey && e.key === 'Enter') {
+        e.preventDefault();
+        insertMarkdown('\n', '');
+    }
+    // Ctrl+Enter for new paragraph
+    else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        insertMarkdown('\n\n', '');
+    }
+});
+
+// Toggle Preview Mode
+toggleBtn.addEventListener('click', () => {
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    preview.classList.toggle('hidden');
+
+    if (!preview.classList.contains('hidden')) {
+        preview.innerHTML = marked.parse(input.value);
+        toggleBtn.innerText = 'Edit';
+        if (isMobile) {
+            document.body.classList.add('mobile-preview-open');
+>>>>>>> b78696b4e301e7f3ca2c9a9f01c82068daa2d58b
         }
         h1, h2, h3 { margin-top: 1.5em; margin-bottom: 0.5em; font-weight: bold; }
         h1 { font-size: 2em; }
