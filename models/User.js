@@ -27,6 +27,10 @@ const UserSchema = new mongoose.Schema({
         minlength: 6,
         select: false
     },
+    profilePicture: {
+        type: String, // Base64 encoded image
+        default: null,
+    },
     role: {
         type: String,
         enum: ['user', 'admin', 'superadmin'],

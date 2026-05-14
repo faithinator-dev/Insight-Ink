@@ -46,7 +46,6 @@
             <%- post.content %>
         </div>
 
-
         <!-- Divider -->
         <hr class="my-12 border-t-2 border-slate-200">
 
@@ -173,79 +172,13 @@
                                     </p>
 
                                     <!-- Edit Form (hidden) -->
-                                    <div id="edit-comment-form-<%= comment._id %>" class="hidden space-y-3 mb-3">
+                                    <div id="edit-comment-form-<%= comment._id %>" class="hidden space-y-3">
                                         <textarea class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" rows="2"><%= comment.text %></textarea>
                                         <div class="flex gap-2 justify-end">
                                             <button onclick="cancelEditComment('<%= comment._id %>')" class="px-3 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded transition">Cancel</button>
                                             <button onclick="saveEditComment('<%= comment._id %>')" class="px-3 py-1 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700 transition">Save</button>
                                         </div>
                                     </div>
-
-                                    <!-- Reply Button -->
-                                    <% if (user) { %>
-                                        <button onclick="toggleReplyForm('<%= comment._id %>')" class="text-sm text-indigo-600 hover:text-indigo-700 font-medium transition mb-3 inline-flex items-center gap-1">
-                                            <i class="fas fa-reply"></i> Reply
-                                        </button>
-                                    <% } %>
-
-                                    <!-- Reply Form (hidden with animation) -->
-                                    <div id="reply-form-<%= comment._id %>" class="reply-form hidden space-y-3 pl-6 border-l-2 border-indigo-200 py-3">
-                                        <% if (user) { %>
-                                            <div class="flex gap-3">
-                                                <% if (user.profilePicture) { %>
-                                                    <img src="<%= user.profilePicture %>" alt="<%= user.name %>" class="w-8 h-8 rounded-full object-cover flex-shrink-0">
-                                                <% } else { %>
-                                                    <div class="w-8 h-8 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-full text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
-                                                        <%= user.name.charAt(0).toUpperCase() %>
-                                                    </div>
-                                                <% } %>
-                                                <div class="flex-1">
-                                                    <textarea 
-                                                        class="reply-textarea w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none text-sm"
-                                                        placeholder="Write a reply..."
-                                                        rows="2"
-                                                    ></textarea>
-                                                    <div class="flex gap-2 justify-end mt-2">
-                                                        <button onclick="cancelReply('<%= comment._id %>')" class="px-3 py-1 text-sm text-slate-600 hover:bg-slate-100 rounded transition">Cancel</button>
-                                                        <button onclick="submitReply('<%= comment._id %>')" class="px-3 py-1 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700 transition">Reply</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        <% } %>
-                                    </div>
-
-                                    <!-- Replies List -->
-                                    <% if (comment.replies && comment.replies.length > 0) { %>
-                                        <div class="replies-container mt-4 space-y-3 pl-6 border-l-2 border-slate-100">
-                                            <% comment.replies.forEach(reply => { %>
-                                                <div class="bg-slate-50 rounded-lg p-3 reply-item" id="reply-<%= reply._id %>">
-                                                    <div class="flex gap-3">
-                                                        <!-- Reply Avatar -->
-                                                        <% if (reply.authorId && reply.authorId.profilePicture) { %>
-                                                            <img src="<%= reply.authorId.profilePicture %>" alt="<%= reply.author %>" class="w-8 h-8 rounded-full object-cover flex-shrink-0">
-                                                        <% } else { %>
-                                                            <div class="w-8 h-8 bg-gradient-to-br from-emerald-300 to-emerald-500 rounded-full text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
-                                                                <%= reply.author.charAt(0).toUpperCase() %>
-                                                            </div>
-                                                        <% } %>
-                                                        
-                                                        <div class="flex-1">
-                                                            <div class="flex items-center justify-between">
-                                                                <div>
-                                                                    <h5 class="text-sm font-semibold text-slate-900"><%= reply.author %></h5>
-                                                                    <p class="text-xs text-slate-500"><%= new Date(reply.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %></p>
-                                                                </div>
-                                                                <% if (user && (user._id.toString() === reply.authorId?.toString() || user.role === 'admin' || user.role === 'superadmin')) { %>
-                                                                    <button onclick="deleteReply('<%= comment._id %>', '<%= reply._id %>')" class="text-xs text-red-600 hover:text-red-700 transition">Delete</button>
-                                                                <% } %>
-                                                            </div>
-                                                            <p class="text-sm text-slate-700 mt-1"><%= reply.text %></p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            <% }) %>
-                                        </div>
-                                    <% } %>
                                 </div>
                             </div>
                         </div>
@@ -261,76 +194,6 @@
 </article>
 
 <style>
-    /* Animations */
-    @keyframes slideDown {
-        from {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @keyframes slideUp {
-        from {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        to {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-    }
-
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-        }
-        to {
-            opacity: 1;
-        }
-    }
-
-    @keyframes pulse {
-        0%, 100% {
-            opacity: 1;
-        }
-        50% {
-            opacity: 0.5;
-        }
-    }
-
-    .reply-form {
-        animation: slideDown 0.3s ease-out;
-    }
-
-    .reply-form.hidden {
-        animation: slideUp 0.3s ease-out;
-        display: none;
-    }
-
-    .reply-item {
-        animation: slideDown 0.3s ease-out;
-    }
-
-    .reply-item.deleting {
-        animation: slideUp 0.3s ease-out forwards;
-    }
-
-    .reply-textarea::placeholder {
-        color: #cbd5e1;
-    }
-
-    .reply-textarea:focus {
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-    }
-
-    .hidden {
-        display: none;
-    }
-
     #post-content {
         font-size: 1.1rem;
         line-height: 1.8;
@@ -425,8 +288,6 @@
         background: #f8fafc;
         font-weight: bold;
     }
-
-    .hidden { display: none; }
 </style>
 
 <script>
@@ -600,119 +461,6 @@ async function deleteComment(commentId, isOwner, role) {
     } catch (error) {
         console.error(error);
         alert('Error deleting comment');
-    }
-}
-
-// Reply functionality with animations
-function toggleReplyForm(commentId) {
-    const form = document.getElementById(`reply-form-${commentId}`);
-    if (form.classList.contains('hidden')) {
-        form.classList.remove('hidden');
-        setTimeout(() => {
-            const textarea = form.querySelector('.reply-textarea');
-            if (textarea) textarea.focus();
-        }, 50);
-    } else {
-        form.classList.add('hidden');
-    }
-}
-
-function cancelReply(commentId) {
-    const form = document.getElementById(`reply-form-${commentId}`);
-    const textarea = form.querySelector('.reply-textarea');
-    textarea.value = '';
-    form.classList.add('hidden');
-}
-
-async function submitReply(commentId) {
-    const form = document.getElementById(`reply-form-${commentId}`);
-    const textarea = form.querySelector('.reply-textarea');
-    const text = textarea.value.trim();
-
-    if (!text) {
-        alert('Please enter a reply');
-        return;
-    }
-
-    try {
-        const response = await fetch(`/api/posts/<%= post._id %>/reply`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text, commentId })
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-            // Create new reply element with animation
-            const repliesContainer = document.querySelector(`#comment-${commentId} .replies-container`);
-            const newReply = document.createElement('div');
-            newReply.className = 'bg-slate-50 rounded-lg p-3 reply-item';
-            newReply.id = `reply-${data.reply._id}`;
-            newReply.innerHTML = `
-                <div class="flex gap-3">
-                    <div class="w-8 h-8 bg-gradient-to-br from-emerald-300 to-emerald-500 rounded-full text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
-                        <%= user.name.charAt(0).toUpperCase() %>
-                    </div>
-                    <div class="flex-1">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h5 class="text-sm font-semibold text-slate-900"><%= user.name %></h5>
-                                <p class="text-xs text-slate-500">Just now</p>
-                            </div>
-                            <button onclick="deleteReply('${commentId}', '${data.reply._id}')" class="text-xs text-red-600 hover:text-red-700 transition">Delete</button>
-                        </div>
-                        <p class="text-sm text-slate-700 mt-1">${text}</p>
-                    </div>
-                </div>
-            `;
-
-            if (repliesContainer) {
-                repliesContainer.appendChild(newReply);
-            } else {
-                // Create container if it doesn't exist
-                const commentElement = document.getElementById(`comment-${commentId}`);
-                const newContainer = document.createElement('div');
-                newContainer.className = 'replies-container mt-4 space-y-3 pl-6 border-l-2 border-slate-100';
-                newContainer.appendChild(newReply);
-                commentElement.appendChild(newContainer);
-            }
-
-            // Clear form and close
-            textarea.value = '';
-            form.classList.add('hidden');
-        } else {
-            alert(data.message || 'Error posting reply');
-        }
-    } catch (error) {
-        console.error(error);
-        alert('Error posting reply');
-    }
-}
-
-async function deleteReply(commentId, replyId) {
-    if (!confirm('Delete this reply?')) return;
-
-    try {
-        const response = await fetch(`/api/posts/<%= post._id %>/reply/${replyId}`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' }
-        });
-
-        if (response.ok) {
-            const replyEl = document.getElementById(`reply-${replyId}`);
-            if (replyEl) {
-                replyEl.classList.add('deleting');
-                setTimeout(() => {
-                    replyEl.remove();
-                }, 300);
-            }
-        } else {
-            const data = await response.json();
-            alert(data.message || 'Error deleting reply');
-        }
-    } catch (error) {
-        console.error(error);
-        alert('Error deleting reply');
     }
 }
 </script>

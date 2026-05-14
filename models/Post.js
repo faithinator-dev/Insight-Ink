@@ -32,6 +32,10 @@ const PostSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  imageData: {
+    type: String, // Base64 encoded image
+    default: null,
+  },
   readTime: {
     type: Number,
     default: 5

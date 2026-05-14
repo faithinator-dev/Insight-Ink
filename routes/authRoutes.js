@@ -11,6 +11,7 @@ const {
     updateProfile
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
+const upload = require('../middleware/upload');
 
 // View routes
 router.get('/login', renderLogin);
@@ -22,6 +23,6 @@ router.get('/inbox', protect, renderInbox);
 // API routes
 router.post('/api/register', register);
 router.post('/api/login', login);
-router.put('/api/profile', protect, updateProfile);
+router.put('/api/profile', protect, upload.single('file'), updateProfile);
 
 module.exports = router;

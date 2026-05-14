@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Notification = require('../models/Notification');
 const jwt = require('jsonwebtoken');
 const { recordActivity } = require('../utils/activityLogger');
+const { fileToBase64 } = require('../utils/fileToBase64');
 
 // @desc    Register user
 // @route   POST /api/auth/register
@@ -198,6 +199,14 @@ exports.updateProfile = async (req, res) => {
 
         if (email) {
             user.email = email;
+        }
+
+        // Handle profile picture if provided
+        if (req.file) {
+            const result = fileToBase64(req.file, 'profilePicture');
+            if (result.success) {
+                user.profilePicture = result.data;
+            }
         }
 
         if (newPassword || confirmPassword || currentPassword) {

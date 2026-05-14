@@ -1,460 +1,216 @@
 <%- include('partials/header') %>
 
-<div class="write-container">
-    <form id="write-form" class="write-form">
-        <div class="write-actions-top">
-            <button type="button" id="toggle-preview" class="btn-secondary">Preview</button>
-            <button type="submit" class="btn-publish">Publish</button>
-        </div>
-        
-        <input type="text" name="title" class="input-title" placeholder="Title" required>
-        <input type="text" name="excerpt" class="input-excerpt" placeholder="Short excerpt (optional)" maxlength="160">
-        
-        <div class="editor-toolbar">
-            <div class="toolbar-group">
-                <button type="button" class="toolbar-btn" id="btn-bold" title="Bold (Ctrl+B)"><strong>B</strong></button>
-                <button type="button" class="toolbar-btn" id="btn-italic" title="Italic (Ctrl+I)"><em>I</em></button>
-                <button type="button" class="toolbar-btn" id="btn-underline" title="Underline (Ctrl+U)"><u>U</u></button>
-                <button type="button" class="toolbar-btn" id="btn-strikethrough" title="Strikethrough">S</button>
-            </div>
-            <div class="toolbar-group">
-                <button type="button" class="toolbar-btn" id="btn-h1" title="Heading 1">H1</button>
-                <button type="button" class="toolbar-btn" id="btn-h2" title="Heading 2">H2</button>
-                <button type="button" class="toolbar-btn" id="btn-h3" title="Heading 3">H3</button>
-            </div>
-            <div class="toolbar-group">
-                <button type="button" class="toolbar-btn" id="btn-list" title="Bullet List">• List</button>
-                <button type="button" class="toolbar-btn" id="btn-olist" title="Ordered List">1. List</button>
-                <button type="button" class="toolbar-btn" id="btn-quote" title="Quote">> Quote</button>
-                <button type="button" class="toolbar-btn" id="btn-code" title="Code Block">Code</button>
-            </div>
-            <div class="toolbar-group">
-                <button type="button" class="toolbar-btn" id="btn-link" title="Insert Link">Link</button>
-                <button type="button" class="toolbar-btn" id="btn-image" title="Insert Image">Image</button>
-            </div>
+<div class="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-4xl sm:text-5xl font-bold text-slate-900 mb-2">Create New Post</h1>
+            <p class="text-lg text-slate-600">Share your thoughts with the world</p>
         </div>
 
-        <div class="editor-wrapper">
-            <div class="editor-pane">
-                <textarea name="content" id="markdown-input" class="input-content" placeholder="Write in Markdown...&#10;💡 Tip: Use toolbar buttons or Ctrl+B, Ctrl+I, Ctrl+U, Shift+Enter for new line" required></textarea>
+        <form id="write-form" class="space-y-6">
+            <!-- Title -->
+            <div>
+                <label for="title" class="block text-sm font-medium text-slate-700 mb-2">Title</label>
+                <input 
+                    type="text" 
+                    id="title" 
+                    name="title" 
+                    class="w-full px-4 py-3 text-2xl font-bold border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" 
+                    placeholder="Your post title" 
+                    required
+                >
             </div>
-            <div class="preview-pane hidden" id="markdown-preview">
-                <!-- Markdown content will be rendered here -->
+
+            <!-- Excerpt -->
+            <div>
+                <label for="excerpt" class="block text-sm font-medium text-slate-700 mb-2">Excerpt (optional)</label>
+                <input 
+                    type="text" 
+                    id="excerpt" 
+                    name="excerpt" 
+                    maxlength="160"
+                    class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" 
+                    placeholder="Brief summary (max 160 characters)"
+                >
+                <p class="text-sm text-slate-500 mt-1"><span id="excerpt-count">0</span>/160</p>
             </div>
-        </div>
-    </form>
-</div>
 
-<!-- Markdown Help Floating Button -->
-<button type="button" class="floating-help-btn" id="markdown-help-btn" title="Markdown Help">
-    <i class="fas fa-question"></i>
-</button>
+            <!-- Featured Image -->
+            <div>
+                <label for="image" class="block text-sm font-medium text-slate-700 mb-2">Featured Image</label>
+                <div class="relative">
+                    <input 
+                        type="file" 
+                        id="image" 
+                        name="image" 
+                        accept="image/*"
+                        class="hidden"
+                    >
+                    <label 
+                        for="image"
+                        class="block w-full px-4 py-8 border-2 border-dashed border-slate-300 rounded-lg hover:border-indigo-400 transition cursor-pointer text-center"
+                    >
+                        <i class="fas fa-cloud-upload-alt text-3xl text-slate-400 mb-2 block"></i>
+                        <p class="text-sm font-medium text-slate-700">Click to upload or drag and drop</p>
+                        <p class="text-xs text-slate-500">PNG, JPG, WebP up to 5MB</p>
+                    </label>
+                    <div id="image-preview" class="mt-4 hidden">
+                        <img id="preview-img" src="" alt="Preview" class="max-h-64 rounded-lg mx-auto">
+                        <button type="button" id="remove-image" class="mt-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 w-full">Remove Image</button>
+                    </div>
+                </div>
+            </div>
 
-<!-- Help Modal -->
-<div class="help-modal hidden" id="help-modal">
-    <div class="help-modal-content">
-        <div class="help-modal-header">
-            <h3>Markdown Guide</h3>
-            <button type="button" id="close-help">&times;</button>
-        </div>
-        <div class="help-modal-body">
-            <table>
-                <thead>
-                    <tr><th>Result</th><th>Markdown</th></tr>
-                </thead>
-                <tbody>
-                    <tr><td><h1>Heading 1</h1></td><td><code># Heading 1</code></td></tr>
-                    <tr><td><h2>Heading 2</h2></td><td><code>## Heading 2</code></td></tr>
-                    <tr><td><strong>Bold</strong></td><td><code>**Bold**</code></td></tr>
-                    <tr><td><em>Italic</em></td><td><code>*Italic*</code></td></tr>
-                    <tr><td><del>Strikethrough</del></td><td><code>~~Strike~~</code></td></tr>
-                    <tr><td><ul><li>List Item</li></ul></td><td><code>- List Item</code></td></tr>
-                    <tr><td><ol><li>List Item</li></ol></td><td><code>1. List Item</code></td></tr>
-                    <tr><td><blockquote>Quote</blockquote></td><td><code>> Quote</code></td></tr>
-                    <tr><td><code>Code</code></td><td><code>`Code`</code></td></tr>
-                    <tr><td><a href="#">Link</a></td><td><code>[Title](url)</code></td></tr>
-                    <tr><td>Image</td><td><code>![Alt](url)</code></td></tr>
-                </tbody>
-            </table>
-        </div>
+            <!-- Editor -->
+            <div>
+                <label for="content" class="block text-sm font-medium text-slate-700 mb-2">Content</label>
+                <textarea 
+                    id="content" 
+                    name="content" 
+                    class="tinymce-editor"
+                    required
+                ></textarea>
+            </div>
+
+            <!-- Read Time -->
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="readTime" class="block text-sm font-medium text-slate-700 mb-2">Read Time (minutes)</label>
+                    <input 
+                        type="number" 
+                        id="readTime" 
+                        name="readTime" 
+                        min="1" 
+                        max="60"
+                        value="5"
+                        class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    >
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex justify-end gap-4 pt-6">
+                <a href="/" class="px-6 py-3 bg-slate-200 text-slate-700 rounded-lg font-medium hover:bg-slate-300 transition">
+                    Cancel
+                </a>
+                <button 
+                    type="submit" 
+                    class="px-8 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition flex items-center gap-2"
+                    id="publish-btn"
+                >
+                    <i class="fas fa-paper-plane"></i> Publish
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
-<!-- Marked Library for Markdown Parsing -->
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
-<style>
-.write-container { max-width: 900px; margin: 40px auto; }
-.write-form { display: flex; flex-direction: column; gap: 15px; }
-.write-actions-top { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 20px; }
-
-/* Toolbar Styles */
-.editor-toolbar {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    padding: 12px;
-    background: var(--secondary-bg);
-    border-radius: 8px 8px 0 0;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.toolbar-group {
-    display: flex;
-    gap: 4px;
-    padding: 0 8px;
-    border-right: 1px solid var(--border-color);
-}
-
-.toolbar-group:last-child {
-    border-right: none;
-}
-
-.toolbar-btn {
-    background: var(--primary-bg);
-    border: 1px solid var(--border-color);
-    color: var(--text-main);
-    padding: 6px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: 500;
-    transition: all 0.2s;
-    min-width: 40px;
-}
-
-.toolbar-btn:hover {
-    background: var(--accent-color);
-    color: white;
-    border-color: var(--accent-color);
-}
-
-.toolbar-btn:active {
-    transform: scale(0.95);
-}
-
-/* Editor wrapper */
-.editor-wrapper { display: flex; gap: 20px; min-height: 500px; }
-.editor-pane, .preview-pane { flex: 1; width: 100%; }
-.hidden { display: none; }
-
-.input-title { font-size: 2.5rem; font-weight: 700; border: none; outline: none; width: 100%; background: transparent; color: var(--text-main); }
-.input-excerpt { font-size: 1.2rem; border: none; outline: none; width: 100%; background: transparent; color: var(--text-muted); margin-bottom: 10px; }
-
-.input-content { 
-    font-size: 1.1rem; border: 1px solid var(--border-color); outline: none; font-family: 'Courier New', monospace; 
-    width: 100%; height: 100%; min-height: 450px; resize: none; background: var(--primary-bg); 
-    color: var(--text-main); line-height: 1.6; padding: 10px;
-    border-radius: 0 0 8px 0;
-    transition: border-color 0.2s;
-}
-
-.input-content:focus {
-    border-color: var(--accent-color);
-}
-
-.preview-pane { 
-    font-family: var(--font-serif); font-size: 1.2rem; line-height: 1.6; 
-    padding: 10px; border-left: 2px solid var(--accent-color);
-    overflow-y: auto;
-}
-
-.mobile-preview-open .editor-pane {
-    display: none;
-}
-
-.mobile-preview-open .preview-pane {
-    position: fixed;
-    inset: 0;
-    z-index: 2000;
-    display: block;
-    width: 100vw;
-    height: 100vh;
-    max-width: 100vw;
-    padding: 64px 16px 24px;
-    border-left: none;
-    background: var(--primary-bg);
-    overflow-y: auto;
-}
-
-.mobile-preview-open .write-actions-top {
-    position: fixed;
-    top: 0;
-    right: 0;
-    z-index: 2001;
-    background: var(--primary-bg);
-    width: auto;
-    padding: 12px 16px;
-    margin-bottom: 0;
-}
-
-.mobile-preview-open .input-title,
-.mobile-preview-open .input-excerpt,
-.mobile-preview-open .btn-publish {
-    display: none;
-}
-
-.mobile-preview-open {
-    overflow: hidden;
-}
-
-.preview-pane h1, .preview-pane h2 { margin-top: 20px; }
-.preview-pane code { background: var(--secondary-bg); padding: 2px 5px; border-radius: 4px; }
-
-.btn-publish { background: var(--accent-color); color: white; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; }
-.btn-secondary { background: var(--secondary-bg); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 20px; border-radius: 20px; cursor: pointer; }
-
-/* Floating Help Button */
-.floating-help-btn {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: var(--text-main);
-    color: white;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    z-index: 1001;
-    transition: transform 0.2s;
-}
-.floating-help-btn:hover { transform: scale(1.1); }
-
-/* Help Modal */
-.help-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1002;
-}
-.help-modal.hidden { display: none; }
-.help-modal-content {
-    background: var(--primary-bg);
-    padding: 30px;
-    border-radius: 12px;
-    max-width: 500px;
-    width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-}
-.help-modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 10px;
-}
-.help-modal-header h3 { font-family: var(--font-sans); }
-#close-help {
-    background: none;
-    border: none;
-    font-size: 2rem;
-    cursor: pointer;
-    line-height: 1;
-}
-.help-modal-body table { width: 100%; border-collapse: collapse; }
-.help-modal-body th, .help-modal-body td { 
-    text-align: left; padding: 12px; border-bottom: 1px solid var(--border-color); 
-}
-.help-modal-body code { background: var(--secondary-bg); padding: 4px 8px; border-radius: 4px; font-family: monospace; }
-</style>
-
 <script>
-const input = document.getElementById('markdown-input');
-const preview = document.getElementById('markdown-preview');
-const toggleBtn = document.getElementById('toggle-preview');
-const helpBtn = document.getElementById('markdown-help-btn');
-const helpModal = document.getElementById('help-modal');
-const closeHelp = document.getElementById('close-help');
-
-// Help Modal Logic
-helpBtn.addEventListener('click', () => helpModal.classList.remove('hidden'));
-closeHelp.addEventListener('click', () => helpModal.classList.add('hidden'));
-window.addEventListener('click', (e) => {
-    if (e.target === helpModal) helpModal.classList.add('hidden');
-});
-
-// Real-time preview update
-input.addEventListener('input', () => {
-    preview.innerHTML = marked.parse(input.value);
-});
-
-// Helper function to insert formatted text at cursor
-function insertMarkdown(before, after = '') {
-    const start = input.selectionStart;
-    const end = input.selectionEnd;
-    const selectedText = input.value.substring(start, end) || 'text';
-    const beforeSelection = input.value.substring(0, start);
-    const afterSelection = input.value.substring(end);
-    
-    input.value = beforeSelection + before + selectedText + after + afterSelection;
-    input.focus();
-    
-    // Update preview
-    preview.innerHTML = marked.parse(input.value);
-    
-    // Trigger input event for form tracking
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-}
-
-// Toolbar Button Handlers
-document.getElementById('btn-bold').addEventListener('click', (e) => {
-    e.preventDefault();
-    insertMarkdown('**', '**');
-});
-
-document.getElementById('btn-italic').addEventListener('click', (e) => {
-    e.preventDefault();
-    insertMarkdown('*', '*');
-});
-
-document.getElementById('btn-underline').addEventListener('click', (e) => {
-    e.preventDefault();
-    insertMarkdown('<u>', '</u>');
-});
-
-document.getElementById('btn-strikethrough').addEventListener('click', (e) => {
-    e.preventDefault();
-    insertMarkdown('~~', '~~');
-});
-
-document.getElementById('btn-h1').addEventListener('click', (e) => {
-    e.preventDefault();
-    insertMarkdown('# ', '');
-});
-
-document.getElementById('btn-h2').addEventListener('click', (e) => {
-    e.preventDefault();
-    insertMarkdown('## ', '');
-});
-
-document.getElementById('btn-h3').addEventListener('click', (e) => {
-    e.preventDefault();
-    insertMarkdown('### ', '');
-});
-
-document.getElementById('btn-list').addEventListener('click', (e) => {
-    e.preventDefault();
-    insertMarkdown('- ', '');
-});
-
-document.getElementById('btn-olist').addEventListener('click', (e) => {
-    e.preventDefault();
-    insertMarkdown('1. ', '');
-});
-
-document.getElementById('btn-quote').addEventListener('click', (e) => {
-    e.preventDefault();
-    insertMarkdown('> ', '');
-});
-
-document.getElementById('btn-code').addEventListener('click', (e) => {
-    e.preventDefault();
-    insertMarkdown('```\n', '\n```');
-});
-
-document.getElementById('btn-link').addEventListener('click', (e) => {
-    e.preventDefault();
-    insertMarkdown('[Link text](', ')');
-});
-
-document.getElementById('btn-image').addEventListener('click', (e) => {
-    e.preventDefault();
-    insertMarkdown('![Alt text](', ')');
-});
-
-// Keyboard Shortcuts
-input.addEventListener('keydown', (e) => {
-    // Ctrl+B for Bold
-    if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
-        e.preventDefault();
-        insertMarkdown('**', '**');
-    }
-    // Ctrl+I for Italic
-    else if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
-        e.preventDefault();
-        insertMarkdown('*', '*');
-    }
-    // Ctrl+U for Underline
-    else if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
-        e.preventDefault();
-        insertMarkdown('<u>', '</u>');
-    }
-    // Shift+Enter for new line (soft break)
-    else if (e.shiftKey && e.key === 'Enter') {
-        e.preventDefault();
-        insertMarkdown('\n', '');
-    }
-    // Ctrl+Enter for new paragraph
-    else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        e.preventDefault();
-        insertMarkdown('\n\n', '');
-    }
-});
-
-// Toggle Preview Mode
-toggleBtn.addEventListener('click', () => {
-    const isMobile = window.matchMedia('(max-width: 768px)').matches;
-    preview.classList.toggle('hidden');
-
-    if (!preview.classList.contains('hidden')) {
-        preview.innerHTML = marked.parse(input.value);
-        toggleBtn.innerText = 'Edit';
-        if (isMobile) {
-            document.body.classList.add('mobile-preview-open');
+// Initialize TinyMCE
+tinymce.init({
+    selector: '.tinymce-editor',
+    plugins: ['lists', 'link', 'image', 'code', 'table', 'wordcount', 'codesample'],
+    toolbar: 'undo redo | blocks | bold italic underline strikethrough | bullist numlist | blockquote codesample | link image | align | removeformat',
+    menu: {
+        favs: { title: 'My Favorites', items: 'bold italic underline | bullist numlist' }
+    },
+    menubar: 'edit view insert format tools table favs',
+    height: 400,
+    branding: false,
+    promotion: false,
+    skin: 'oxide',
+    content_css: 'default',
+    content_style: `
+        body {
+            font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #1e293b;
         }
-    } else {
-        toggleBtn.innerText = 'Preview';
-        document.body.classList.remove('mobile-preview-open');
+        h1, h2, h3 { margin-top: 1.5em; margin-bottom: 0.5em; font-weight: bold; }
+        h1 { font-size: 2em; }
+        h2 { font-size: 1.5em; }
+        h3 { font-size: 1.25em; }
+        pre { background: #f1f5f9; padding: 1em; border-radius: 0.5em; overflow-x: auto; }
+        blockquote { border-left: 4px solid #6366f1; padding-left: 1em; margin-left: 0; color: #64748b; }
+        code { background: #f1f5f9; padding: 0.2em 0.4em; border-radius: 0.3em; font-family: 'Courier New', monospace; }
+    `,
+    entity_encoding: 'raw'
+});
+
+// Excerpt character counter
+const excerptInput = document.getElementById('excerpt');
+const excerptCount = document.getElementById('excerpt-count');
+excerptInput.addEventListener('input', () => {
+    excerptCount.textContent = excerptInput.value.length;
+});
+
+// Image upload handling
+const imageInput = document.getElementById('image');
+const imagePreview = document.getElementById('image-preview');
+const previewImg = document.getElementById('preview-img');
+const removeImageBtn = document.getElementById('remove-image');
+
+imageInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            previewImg.src = event.target.result;
+            imagePreview.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
     }
 });
 
+removeImageBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    imageInput.value = '';
+    imagePreview.classList.add('hidden');
+});
+
+// Form submission
 document.getElementById('write-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const publishBtn = e.target.querySelector('.btn-publish');
-    const originalText = publishBtn.innerText;
-
-    // Loading state
+    
+    const publishBtn = document.getElementById('publish-btn');
     publishBtn.disabled = true;
-    publishBtn.innerHTML = '<span class="loader"></span> Publishing...';
-
-    const formData = {
-        title: e.target.title.value,
-        excerpt: e.target.excerpt.value,
-        content: e.target.content.value
-    };
+    publishBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Publishing...';
 
     try {
-        const res = await fetch('/api/posts', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
-        const data = await res.json();
-        if (res.ok) window.location.href = '/post/' + data._id;
-        else {
-            alert(data.message || 'Error publishing');
-            publishBtn.disabled = false;
-            publishBtn.innerText = originalText;
+        // Get TinyMCE content
+        const content = tinymce.get('content').getContent();
+        
+        const formData = new FormData();
+        formData.append('title', document.getElementById('title').value);
+        formData.append('excerpt', document.getElementById('excerpt').value);
+        formData.append('content', content);
+        formData.append('readTime', document.getElementById('readTime').value);
+        
+        if (imageInput.files[0]) {
+            formData.append('file', imageInput.files[0]);
         }
-    } catch (err) {
-        console.error(err);
-        alert('An error occurred.');
+
+        const response = await fetch('/api/posts', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+            window.location.href = '/post/' + data._id;
+        } else {
+            alert(data.message || 'Error publishing post');
+            publishBtn.disabled = false;
+            publishBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Publish';
+        }
+    } catch (error) {
+        console.error(error);
+        alert('An error occurred while publishing');
         publishBtn.disabled = false;
-        publishBtn.innerText = originalText;
+        publishBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Publish';
     }
 });
 </script>

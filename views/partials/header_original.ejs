@@ -1,0 +1,74 @@
+<header class="navbar">
+    <div class="container nav-container">
+        <div class="nav-left">
+            <a href="/" class="logo">Insight Ink</a>
+        </div>
+        <div class="nav-right">
+            <% if (user) { %>
+                <a href="/write" class="write-link"><i class="fas fa-pen-fancy"></i> Write</a>
+                <a href="/inbox" class="btn-icon" title="Notifications">
+                    <i class="fas fa-bell"></i>
+                    <% if (unreadCount > 0) { %>
+                        <span class="notification-badge"><%= unreadCount > 9 ? '9+' : unreadCount %></span>
+                    <% } %>
+                </a>
+                <div class="profile-group">
+                    <button class="profile-trigger" id="profile-trigger">
+                        <% if (user.profilePicture) { %>
+                            <img src="<%= user.profilePicture %>" alt="<%= user.name %>" class="profile-circle" style="width: 32px; height: 32px; object-fit: cover;">
+                        <% } else { %>
+                            <div class="profile-circle"><%= user.name.charAt(0).toUpperCase() %></div>
+                        <% } %>
+                        <span class="profile-trigger-label"><%= user.name %></span>
+                        <i class="fas fa-chevron-down profile-chevron"></i>
+                    </button>
+                    <nav class="profile-dropdown hidden" id="profile-dropdown">
+                        <a href="/profile" class="profile-dropdown-link"><i class="fas fa-user"></i> Profile</a>
+                        <a href="/inbox" class="profile-dropdown-link"><i class="fas fa-inbox"></i> Inbox</a>
+                        <% if (user.role === 'admin' || user.role === 'superadmin') { %>
+                            <a href="/admin" class="profile-dropdown-link"><i class="fas fa-shield-alt"></i> Admin</a>
+                        <% } %>
+                        <% if (user.role === 'superadmin') { %>
+                            <a href="/super-admin" class="profile-dropdown-link"><i class="fas fa-crown"></i> Super Admin</a>
+                        <% } %>
+                        <a href="/logout" class="profile-dropdown-link danger"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </nav>
+                </div>
+            <% } else { %>
+                <a href="/login" class="nav-link">Login</a>
+                <a href="/register" class="btn-primary">Sign Up</a>
+            <% } %>
+        </div>
+    </div>
+</header>
+
+<script>
+const profileTrigger = document.getElementById('profile-trigger');
+const profileDropdown = document.getElementById('profile-dropdown');
+
+if (profileTrigger) {
+    profileTrigger.addEventListener('click', () => {
+        profileDropdown.classList.toggle('hidden');
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!profileTrigger.contains(e.target) && !profileDropdown.contains(e.target)) {
+            profileDropdown.classList.add('hidden');
+        }
+    });
+}
+</script>
+
+<style>
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #d93025;
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 5px;
+    border-radius: 10px;
+    font-weight: bold;
+}
+</style>

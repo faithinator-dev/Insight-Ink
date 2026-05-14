@@ -1,6 +1,7 @@
 const Post = require('../models/Post');
 const { recordActivity } = require('../utils/activityLogger');
 const { createNotification } = require('../utils/notificationService');
+const { fileToBase64 } = require('../utils/fileToBase64');
 
 const ensurePostArrays = (post) => {
     if (!Array.isArray(post.likes)) {
@@ -16,14 +17,24 @@ const ensurePostArrays = (post) => {
 exports.createPost = async (req, res) => {
     try {
         const { title, excerpt, content, readTime } = req.body;
-        const post = await Post.create({ 
+        const postData = { 
             title, 
             excerpt, 
             content, 
             readTime: readTime || 5,
             author: req.user.name,
             authorId: req.user._id
-        });
+        };
+
+        // Handle image if provided
+        if (req.file) {
+            const result = fileToBase64(req.file, 'postImage');
+            if (result.success) {
+                postData.imageData = result.data;
+            }
+        }
+
+        const post = await Post.create(postData);
         await recordActivity({
             type: 'post',
             action: 'post_created',
@@ -235,6 +246,14 @@ exports.updatePost = async (req, res) => {
         post.content = content || post.content;
         post.readTime = readTime || post.readTime;
 
+        // Handle image if provided
+        if (req.file) {
+            const result = fileToBase64(req.file, 'postImage');
+            if (result.success) {
+                post.imageData = result.data;
+            }
+        }
+
         await post.save();
         await recordActivity({
             type: 'post',
@@ -434,5 +453,56 @@ exports.addReply = async (req, res) => {
         res.json({ success: true, reply: newReply });
     } catch (error) {
         res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+// Delete Reply
+exports.deleteReply = async (req, res) => {
+    try {
+        const { replyId } = req.params;
+        const post = await Post.findById(req.params.id);
+        if (!post) return res.status(404).json({ message: 'Post not found' });
+        ensurePostArrays(post);
+
+        // Find the comment and reply
+        let comment = null;
+        let reply = null;
+
+        for (let c of post.comments) {
+            const r = c.replies.id(replyId);
+            if (r) {
+                comment = c;
+                reply = r;
+                break;
+            }
+        }
+
+        if (!reply) return res.status(404).json({ message: 'Reply not found' });
+
+        // Check authorization: only reply author or admin can delete
+        if (reply.authorId.toString() !== req.user._id.toString() && 
+            req.user.role !== 'admin' && req.user.role !== 'superadmin') {
+            return res.status(401).json({ message: 'Not authorized to delete this reply' });
+        }
+
+        await Post.updateOne(
+            { _id: post._id, 'comments._id': comment._id },
+            { $pull: { 'comments.$.replies': { _id: replyId } } }
+        );
+
+        await recordActivity({
+            type: 'comment',
+            action: 'reply_deleted',
+            userId: req.user._id,
+            userName: req.user.name,
+            role: req.user.role,
+            entityType: 'reply',
+            entityId: String(replyId),
+            entityName: post.title,
+        });
+
+        res.json({ success: true, message: 'Reply deleted' });
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error: ' + error.message });
     }
 };

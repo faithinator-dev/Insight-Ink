@@ -1,53 +1,251 @@
 <%- include('partials/header') %>
 
-<div class="profile-page">
-    <div class="profile-hero">
-        <div class="profile-avatar-lg"><%= ((profileUser.name || profileUser.username || 'U').charAt(0).toUpperCase()) %></div>
-        <div>
-            <h1>Your Profile</h1>
-            <p>Edit your account details or log out from here.</p>
-            <p class="profile-username">@<%= profileUser.username || 'user' %></p>
+<div class="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Profile Header -->
+        <div class="mb-12">
+            <div class="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+                <div class="flex flex-col sm:flex-row sm:items-end gap-6">
+                    <!-- Profile Picture -->
+                    <div class="relative flex-shrink-0">
+                        <% if (profileUser.profilePicture) { %>
+                            <img src="<%= profileUser.profilePicture %>" alt="<%= profileUser.name %>" class="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-indigo-200" />
+                        <% } else { %>
+                            <div class="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 text-white font-bold text-4xl sm:text-5xl flex items-center justify-center border-4 border-indigo-200">
+                                <%= (profileUser.name) ? profileUser.name.charAt(0).toUpperCase() : 'U' %>
+                            </div>
+                        <% } %>
+                    </div>
+
+                    <!-- Profile Info -->
+                    <div class="flex-1">
+                        <h1 class="text-4xl font-bold text-slate-900 mb-2"><%= profileUser.name %></h1>
+                        <p class="text-lg text-slate-600 mb-4">@<%= profileUser.username || 'user' %></p>
+                        <div class="flex flex-wrap gap-3">
+                            <span class="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium capitalize">
+                                <%= profileUser.role %>
+                            </span>
+                            <span class="px-4 py-2 bg-slate-100 text-slate-700 rounded-full text-sm">
+                                Member since <%= new Date(profileUser.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) %>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Settings Form -->
+            <div class="lg:col-span-2">
+                <form id="profile-form" class="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm space-y-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900 mb-6">Account Settings</h2>
+                    </div>
+
+                    <!-- Profile Picture Upload -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-3">Profile Picture</label>
+                        <input 
+                            type="file" 
+                            id="profile-pic-input" 
+                            accept="image/*"
+                            class="hidden"
+                        >
+                        <label 
+                            for="profile-pic-input"
+                            class="block w-full px-4 py-8 border-2 border-dashed border-slate-300 rounded-lg hover:border-indigo-400 transition cursor-pointer text-center"
+                        >
+                            <i class="fas fa-camera text-2xl text-slate-400 mb-2 block"></i>
+                            <p class="text-sm font-medium text-slate-700">Click to upload profile picture</p>
+                            <p class="text-xs text-slate-500">PNG, JPG, WebP up to 2MB</p>
+                        </label>
+                    </div>
+
+                    <!-- Full Name -->
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-slate-700 mb-2">Full Name</label>
+                        <input 
+                            type="text" 
+                            id="name" 
+                            name="name" 
+                            value="<%= profileUser.name || '' %>"
+                            class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            required
+                        >
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-slate-700 mb-2">Email Address</label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            value="<%= profileUser.email || '' %>"
+                            class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            required
+                        >
+                    </div>
+
+                    <!-- Password Section -->
+                    <div class="border-t border-slate-200 pt-6">
+                        <h3 class="text-lg font-semibold text-slate-900 mb-4">Change Password</h3>
+                        <p class="text-sm text-slate-600 mb-4">Leave blank to keep your current password</p>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label for="currentPassword" class="block text-sm font-medium text-slate-700 mb-2">Current Password</label>
+                                <input 
+                                    type="password" 
+                                    id="currentPassword" 
+                                    name="currentPassword" 
+                                    class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    placeholder="Required only to change password"
+                                >
+                            </div>
+
+                            <div>
+                                <label for="newPassword" class="block text-sm font-medium text-slate-700 mb-2">New Password</label>
+                                <input 
+                                    type="password" 
+                                    id="newPassword" 
+                                    name="newPassword" 
+                                    class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                >
+                            </div>
+
+                            <div>
+                                <label for="confirmPassword" class="block text-sm font-medium text-slate-700 mb-2">Confirm Password</label>
+                                <input 
+                                    type="password" 
+                                    id="confirmPassword" 
+                                    name="confirmPassword" 
+                                    class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                >
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="flex justify-between gap-4 pt-6 border-t border-slate-200">
+                        <a href="/" class="px-6 py-2 bg-slate-200 text-slate-700 rounded-lg font-medium hover:bg-slate-300 transition">
+                            Cancel
+                        </a>
+                        <button 
+                            type="submit" 
+                            class="px-8 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition"
+                            id="save-btn"
+                        >
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Account Info -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <h3 class="text-lg font-semibold text-slate-900 mb-4">Account Info</h3>
+                    <div class="space-y-4 text-sm">
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-600">Role</span>
+                            <span class="font-medium text-slate-900 capitalize"><%= profileUser.role %></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-600">Joined</span>
+                            <span class="font-medium text-slate-900"><%= new Date(profileUser.createdAt).toLocaleDateString() %></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-600">User ID</span>
+                            <span class="font-medium text-slate-900 font-mono text-xs"><%= profileUser._id.toString().slice(-8) %>...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <h3 class="text-lg font-semibold text-slate-900 mb-4">Quick Links</h3>
+                    <div class="space-y-3">
+                        <a href="/write" class="flex items-center gap-3 text-indigo-600 hover:text-indigo-700 font-medium">
+                            <i class="fas fa-pen-fancy"></i> Write a Post
+                        </a>
+                        <a href="/inbox" class="flex items-center gap-3 text-indigo-600 hover:text-indigo-700 font-medium">
+                            <i class="fas fa-bell"></i> Notifications
+                        </a>
+                        <% if (profileUser.role === 'admin' || profileUser.role === 'superadmin') { %>
+                            <a href="/super-admin" class="flex items-center gap-3 text-amber-600 hover:text-amber-700 font-medium">
+                                <i class="fas fa-shield"></i> Admin Panel
+                            </a>
+                        <% } %>
+                        <a href="/logout" class="flex items-center gap-3 text-red-600 hover:text-red-700 font-medium">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+</div>
 
-    <div class="profile-grid">
-        <section class="profile-card">
-            <h2>Account details</h2>
-            <form id="profile-form" class="profile-form">
-                <label>
-                    Full name
-                    <input type="text" name="name" value="<%= profileUser.name || '' %>" required>
-                </label>
+<script>
+const profileForm = document.getElementById('profile-form');
+const profilePicInput = document.getElementById('profile-pic-input');
+const saveBtn = document.getElementById('save-btn');
+let selectedFile = null;
 
-                <label>
-                    Email
-                    <input type="email" name="email" value="<%= profileUser.email || '' %>" required>
-                </label>
+// Profile picture selection
+profilePicInput.addEventListener('change', (e) => {
+    selectedFile = e.target.files[0];
+    if (selectedFile) {
+        console.log('Profile picture selected:', selectedFile.name);
+    }
+});
 
-                <label>
-                    Current password
-                    <input type="password" name="currentPassword" placeholder="Required only to change password">
-                </label>
+// Form submission
+profileForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Saving...';
 
-                <label>
-                    New password
-                    <input type="password" name="newPassword" placeholder="Leave blank to keep your current password">
-                </label>
+    try {
+        const formData = new FormData();
+        formData.append('name', document.getElementById('name').value);
+        formData.append('email', document.getElementById('email').value);
+        formData.append('currentPassword', document.getElementById('currentPassword').value);
+        formData.append('newPassword', document.getElementById('newPassword').value);
+        formData.append('confirmPassword', document.getElementById('confirmPassword').value);
+        
+        if (selectedFile) {
+            formData.append('file', selectedFile);
+        }
 
-                <label>
-                    Confirm new password
-                    <input type="password" name="confirmPassword" placeholder="Repeat the new password">
-                </label>
+        const response = await fetch('/api/auth/profile', {
+            method: 'PUT',
+            body: formData
+        });
 
-                <button type="submit" class="btn-primary profile-save-btn">Save changes</button>
-            </form>
-        </section>
+        const data = await response.json();
+        
+        if (response.ok) {
+            alert('Profile updated successfully!');
+            window.location.reload();
+        } else {
+            alert(data.message || 'Error updating profile');
+        }
+    } catch (error) {
+        console.error(error);
+        alert('An error occurred while updating profile');
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = 'Save Changes';
+    }
+});
+</script>
 
-        <aside class="profile-card profile-summary">
-            <h2>Account info</h2>
-            <div class="summary-row">
-                <span>Role</span>
-                <strong><%= profileUser.role %></strong>
+<%- include('partials/footer') %>
             </div>
             <div class="summary-row">
                 <span>Member since</span>

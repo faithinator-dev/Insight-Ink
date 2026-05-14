@@ -1,0 +1,150 @@
+<%- include('partials/header') %>
+
+<div class="posts-grid">
+    <% if (posts && posts.length > 0) { %>
+        <% posts.forEach(post => { %>
+            <% const isLiked = user && post.likes && post.likes.some(likeId => likeId.toString() === user._id.toString()); %>
+            <% const likeCount = post.likes?.length || 0; %>
+            <% const commentCount = post.comments?.length || 0; %>
+            
+            <article class="post-card">
+                <!-- Featured Image (optional) -->
+                <% if (post.imageData) { %>
+                    <div class="post-card-image">
+                        <img src="<%= post.imageData %>" alt="<%= post.title %>" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">
+                    </div>
+                <% } else { %>
+                    <div class="post-card-image">
+                        <div class="placeholder-img"></div>
+                    </div>
+                <% } %>
+
+                <div class="post-card-content">
+                    <div class="post-meta-top">
+                        <% if (post.authorId && post.authorId.profilePicture) { %>
+                            <img src="<%= post.authorId.profilePicture %>" alt="<%= post.author %>" class="profile-circle small" style="width: 20px; height: 20px; object-fit: cover; display: inline-block; margin-right: 8px; vertical-align: middle;">
+                        <% } else { %>
+                            <span class="profile-circle small" style="width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; margin-right: 8px; vertical-align: middle; font-size: 0.75rem;"><%= post.author.charAt(0).toUpperCase() %></span>
+                        <% } %>
+                        <span class="author-name"><%= post.author %></span>
+                        · <span><%= new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %></span>
+                    </div>
+
+                    <h2 class="post-title">
+                        <a href="/post/<%= post._id %>"><%= post.title %></a>
+                    </h2>
+
+                    <% if (post.excerpt) { %>
+                        <p class="post-excerpt"><%= post.excerpt %></p>
+                    <% } %>
+
+                    <div class="post-card-footer">
+                        <div class="reactions">
+                            <% if (user) { %>
+                                <button type="button" class="reaction-like reaction" data-post-id="<%= post._id %>" data-liked="<%= isLiked ? 'true' : 'false' %>" style="color: <%= isLiked ? 'var(--accent-color)' : 'var(--text-muted)' %>;">
+                                    <i class="<%= isLiked ? 'fas' : 'far' %> fa-heart"></i>
+                                    <span class="reaction-count"><%= likeCount %></span>
+                                </button>
+                            <% } else { %>
+                                <a href="/login" class="reaction" style="color: var(--text-muted);">
+                                    <i class="far fa-heart"></i>
+                                    <span><%= likeCount %></span>
+                                </a>
+                            <% } %>
+                            <a href="/post/<%= post._id %>#comments" class="reaction">
+                                <i class="far fa-comment"></i>
+                                <span><%= commentCount %></span>
+                            </a>
+                        </div>
+                        <span style="font-size: 0.85rem; color: var(--text-muted);"><%= post.readTime || 5 %> min read</span>
+                    </div>
+                </div>
+
+                <!-- Edit/Delete Actions -->
+                <% if (user && post.authorId && (user._id.toString() === post.authorId.toString() || user.role === 'admin' || user.role === 'superadmin')) { %>
+                    <div style="position: absolute; top: 10px; right: 10px; display: none; gap: 8px;" class="post-actions-menu">
+                        <a href="/edit/<%= post._id %>" style="padding: 6px 12px; background: var(--secondary-bg); border-radius: 4px; font-size: 0.85rem; text-decoration: none; color: var(--text-main);" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <button onclick="deletePost('<%= post._id %>', <%= JSON.stringify(user._id.toString() === post.authorId.toString()) %>, '<%= user.role %>')" style="padding: 6px 12px; background: var(--secondary-bg); border-radius: 4px; font-size: 0.85rem; border: none; cursor: pointer; color: var(--text-main);" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                <% } %>
+            </article>
+        <% }) %>
+    <% } else { %>
+        <div style="text-align: center; padding: 60px 20px; grid-column: 1 / -1;">
+            <div style="font-size: 3rem; margin-bottom: 20px; color: var(--text-muted);"><i class="fas fa-feather"></i></div>
+            <h3 style="font-size: 1.2rem; margin-bottom: 12px; color: var(--text-main);">No posts yet</h3>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">Be the first to share your thoughts</p>
+            <% if (user) { %>
+                <a href="/write" style="display: inline-block; padding: 10px 20px; background: var(--accent-color); color: white; border-radius: 20px; text-decoration: none; font-weight: 500; transition: opacity 0.2s;">
+                    Write your first post
+                </a>
+            <% } %>
+        </div>
+    <% } %>
+</div>
+
+<script>
+document.querySelectorAll('.reaction-like').forEach((button) => {
+    button.addEventListener('click', async () => {
+        const postId = button.dataset.postId;
+
+        try {
+            const response = await fetch(`/api/posts/${postId}/like`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                alert(data.message || 'Could not update like.');
+                return;
+            }
+
+            const liked = Boolean(data.isLiked);
+            button.dataset.liked = String(liked);
+            const icon = button.querySelector('i');
+            const count = button.querySelector('.reaction-count');
+
+            if (icon) {
+                icon.className = liked ? 'fas fa-heart' : 'far fa-heart';
+            }
+
+            if (count) {
+                count.textContent = String(data.likes);
+            }
+
+            button.style.color = liked ? 'var(--accent-color)' : 'var(--text-muted)';
+        } catch (error) {
+            console.error(error);
+            alert('Could not update like.');
+        }
+    });
+});
+
+function deletePost(id, isOwner, role) {
+    if (!confirm('Are you sure you want to delete this post?')) return;
+
+    let deleteReason = '';
+    if (!isOwner && (role === 'admin' || role === 'superadmin')) {
+        deleteReason = prompt('Enter reason for deletion:');
+        if (!deleteReason) return;
+    }
+
+    try {
+        const res = fetch(`/api/posts/${id}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ deleteReason })
+        });
+        if (res.ok) location.reload();
+    } catch (err) {
+        console.error(err);
+    }
+}
+</script>
+
+<%- include('partials/footer') %>
