@@ -123,7 +123,8 @@ npm start
 
 - `POST /api/register` - `{ name, email, password }`
 - `POST /api/login` - `{ email, password }`
-- `GET /api/auth/logout` - clears `token` cookie (HTML redirect to `/login`)
+- `GET /logout` - clears `token` cookie (HTML redirect to `/login`)
+- `PUT /api/profile` - update profile (multipart/form-data or JSON)
 
 ### Posts
 

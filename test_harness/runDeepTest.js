@@ -189,6 +189,19 @@ async function run() {
     assert(r.res.status === 200, `Expected 200 for /profile, got ${r.res.status}`);
   }
 
+  // Protected: profile update API
+  {
+    const r = await request(baseUrl, {
+      method: 'PUT',
+      path: '/api/profile',
+      jsonBody: { name: `${testName} Updated` },
+      cookieJar,
+    });
+    assert(r.res.status === 200, `Expected 200 for PUT /api/profile, got ${r.res.status}`);
+    assert(r.data && r.data.user && r.data.user.name === `${testName} Updated`, 'Expected updated name in response');
+    results.push({ name: 'PUT /api/profile 200', ok: true, status: r.res.status });
+  }
+
   // Protected: write
   {
     const r = await request(baseUrl, { method: 'GET', path: '/write', cookieJar });

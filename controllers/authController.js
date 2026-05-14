@@ -5,7 +5,7 @@ const { recordActivity } = require('../utils/activityLogger');
 const { fileToBase64 } = require('../utils/fileToBase64');
 
 // @desc    Register user
-// @route   POST /api/auth/register
+// @route   POST /api/register
 exports.register = async (req, res) => {
     try {
         const { name, email, password } = req.body;
@@ -36,7 +36,7 @@ exports.register = async (req, res) => {
 };
 
 // @desc    Login user
-// @route   POST /api/auth/login
+// @route   POST /api/login
 exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -79,7 +79,7 @@ exports.login = async (req, res) => {
 };
 
 // @desc    Log user out / clear cookie
-// @route   GET /api/auth/logout
+// @route   GET /logout
 exports.logout = (req, res) => {
     const currentUser = res.locals.user;
 
